@@ -45,3 +45,23 @@ cnn:
 		python streamspot/parse.py $$number ../../data/all.tsv ../../data/cnn_data/base_train/base-cnn-v2-$$number.txt ../../data/cnn_data/stream_train/stream-cnn-v2-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+
+wget_train:
+	cd ../../data/benign && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 99 ] ; do \
+		python camflow/prepare.py ../../data/benign/wget-normal-$$number.log wget-normal-preprocessed-$$number.txt ; \
+		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
+		rm error.log ; \
+		rm wget-normal-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+wget_test:
+	cd ../../data/attack && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 4 ] ; do \
+		python camflow/prepare.py ../../data/attack/wget-attack-$$number.log wget-attack-preprocessed-$$number.txt ; \
+		python camflow/parse.py wget-attack-preprocessed-$$number.txt ../../data/attack/base/base-wget-attack-$$number.txt ../../data/attack/stream/stream-wget-attack-$$number.txt ; \
+		rm error.log ; \
+		rm wget-attack-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
