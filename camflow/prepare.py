@@ -124,9 +124,9 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					edge_id = long(used[uid]["cf:id"])	# Can be used as timestamp
-					if smallest_timestamp == None or edge_id < smallest_timestamp:
-						smallest_timestamp = edge_id
+					timestamp = long(used[uid]["cf:jiffies"])
+					if smallest_timestamp == None or timestamp < smallest_timestamp:
+						smallest_timestamp = timestamp
 
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -138,9 +138,9 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					edge_id = long(wasGeneratedBy[uid]["cf:id"])	# Can be used as timestamp
-					if smallest_timestamp == None or edge_id < smallest_timestamp:
-						smallest_timestamp = edge_id
+					timestamp = long(wasGeneratedBy[uid]["cf:jiffies"])
+					if smallest_timestamp == None or timestamp < smallest_timestamp:
+						smallest_timestamp = timestamp
 
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
@@ -152,9 +152,9 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					edge_id = long(wasInformedBy[uid]["cf:id"])	# Can be used as timestamp
-					if smallest_timestamp == None or edge_id < smallest_timestamp:
-						smallest_timestamp = edge_id
+					timestamp = long(wasInformedBy[uid]["cf:jiffies"])
+					if smallest_timestamp == None or timestamp < smallest_timestamp:
+						smallest_timestamp = timestamp
 
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -166,9 +166,9 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue	
 					total_edges += 1
-					edge_id = long(wasDerivedFrom[uid]["cf:id"])	# Can be used as timestamp
-					if smallest_timestamp == None or edge_id < smallest_timestamp:
-						smallest_timestamp = edge_id
+					timestamp = long(wasDerivedFrom[uid]["cf:jiffies"])
+					if smallest_timestamp == None or timestamp < smallest_timestamp:
+						smallest_timestamp = timestamp
 	f.close()			
 
 	output = open(outputfile, "w+")
@@ -194,8 +194,8 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 					
-					edge_id = used[uid]["cf:id"]	# Can be used as timestamp
-					adjusted_ts = str(long(edge_id) - smallest_timestamp)
+					ts = used[uid]["cf:jiffies"]
+					adjusted_ts = str(long(ts) - smallest_timestamp)
 					
 					edge_flags = "N/A"
 					if "cf:flags" in used[uid]:
@@ -223,8 +223,8 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					edge_id = wasGeneratedBy[uid]["cf:id"]
-					adjusted_ts = str(long(edge_id) - smallest_timestamp)
+					ts = wasGeneratedBy[uid]["cf:jiffies"]
+					adjusted_ts = str(long(ts) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasGeneratedBy[uid]:
@@ -252,8 +252,8 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					edge_id = wasInformedBy[uid]["cf:id"]
-					adjusted_ts = str(long(edge_id) - smallest_timestamp)
+					ts = wasInformedBy[uid]["cf:jiffies"]
+					adjusted_ts = str(long(ts) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasInformedBy[uid]:
@@ -281,8 +281,8 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					edge_id = wasDerivedFrom[uid]["cf:id"]
-					adjusted_ts = str(long(edge_id) - smallest_timestamp)
+					ts = wasDerivedFrom[uid]["cf:jiffies"]
+					adjusted_ts = str(long(ts) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasDerivedFrom[uid]:

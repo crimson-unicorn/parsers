@@ -2,7 +2,7 @@ import sys
 import math
 
 def compare_edges(a, b):
-	if a[7] > b[7]:
+	if long(a[7]) > long(b[7]):
 		return 1
 	else:
 		return -1
@@ -65,7 +65,8 @@ if __name__ == "__main__":
 		sys.exit(1)
 
 	graph = read_single_graph(sys.argv[1])
-	base_graph_size = math.ceil(len(graph) * 0.1)	# The size of base graph.
+	# base_graph_size = math.ceil(len(graph) * 0.1)	# The size of base graph.
+	base_graph_size = 1 	# For evalution, we only care about streaming graph.
 	stream_graph_size = len(graph) - base_graph_size
 
 	base_file = open(sys.argv[2], "w")
