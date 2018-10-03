@@ -1,6 +1,12 @@
 import sys
 import math
 
+def compare_edges(a, b):
+	if a[7] > b[7]:
+		return 1
+	else:
+		return -1
+
 def read_single_graph(file_name):
 	'''
 	edge format: [source_node_id, destination_node_id, source_node_type, source_node_seen, destination_node_seen, destination_node_type, edge_type, timestamp]
@@ -44,6 +50,7 @@ def read_single_graph(file_name):
 			graph.append(edge)
 	
 	f.close()
+	graph.sort(compare_edges)
 	return graph
 
 def print_instruction():
