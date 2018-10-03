@@ -61,6 +61,36 @@ attack:
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 109 ] ; do \
+		python camflow/prepare.py ../../data/benign/wget-normal-$$number.log wget-normal-preprocessed-$$number.txt ; \
+		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
+		rm error.log ; \
+		rm wget-normal-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+wget_baseline_attack:
+	cd ../../data/attack_baseline && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python camflow/prepare.py ../../data/attack_baseline/wget-baseline-attack-$$number.log wget-baseline-attack-preprocessed-$$number.txt ; \
+		python camflow/parse.py wget-baseline-attack-preprocessed-$$number.txt ../../data/attack_baseline/base/base-wget-attack-baseline-$$number.txt ../../data/attack_baseline/stream/stream-wget-attack-baseline-$$number.txt ; \
+		rm error.log ; \
+		rm wget-baseline-attack-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+wget_interval_attack:
+	cd ../../data/attack_interval && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python camflow/prepare.py ../../data/attack_interval/wget-interval-attack-$$number.log wget-interval-attack-preprocessed-$$number.txt ; \
+		python camflow/parse.py wget-interval-attack-preprocessed-$$number.txt ../../data/attack_interval/base/base-wget-attack-interval-$$number.txt ../../data/attack_interval/stream/stream-wget-attack-interval-$$number.txt ; \
+		rm error.log ; \
+		rm wget-interval-attack-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+wget_long_train:
+	cd ../../data/benign && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 99 ] ; do \
 		python camflow/prepare.py ../../data/benign/wget-normal-$$number.log wget-normal-preprocessed-$$number.txt ; \
 		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
@@ -69,7 +99,7 @@ wget_train:
 		number=`expr $$number + 1` ; \
 	done
 
-wget_test:
+wget_long_test:
 	cd ../../data/attack && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 4 ] ; do \
 		python camflow/prepare.py ../../data/attack/wget-attack-$$number.log wget-attack-preprocessed-$$number.txt ; \
