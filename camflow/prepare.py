@@ -107,6 +107,70 @@ def parse_all_edges(inputfile, outputfile, node_map):
 	Parse all edges with the timestamp to a file.
 	Format: <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_timestamp>
 	"""
+	# Go through the file to find the smallest timestamp and the also count the total number of edges.
+	total_edges = 0
+	smallest_timestamp = None
+	with open(inputfile) as f:
+		for line in f:
+			json_object = json.loads(line)
+
+			if "used" in json_object:
+				used = json_object["used"]
+				for uid in used:
+					from_id = used[uid]["prov:entity"]
+					to_id = used[uid]["prov:activity"]
+					if from_id not in node_map:
+						continue
+					if to_id not in node_map:
+						continue
+					total_edges += 1
+					edge_id = long(used[uid]["cf:id"])	# Can be used as timestamp
+					if smallest_timestamp == None or edge_id < smallest_timestamp:
+						smallest_timestamp = edge_id
+
+			if "wasGeneratedBy" in json_object:
+				wasGeneratedBy = json_object["wasGeneratedBy"]
+				for uid in wasGeneratedBy:
+					from_id = wasGeneratedBy[uid]["prov:activity"]
+					to_id = wasGeneratedBy[uid]["prov:entity"]
+					if from_id not in node_map:
+						continue
+					if to_id not in node_map:
+						continue
+					total_edges += 1
+					edge_id = long(wasGeneratedBy[uid]["cf:id"])	# Can be used as timestamp
+					if smallest_timestamp == None or edge_id < smallest_timestamp:
+						smallest_timestamp = edge_id
+
+			if "wasInformedBy" in json_object:
+				wasInformedBy = json_object["wasInformedBy"]
+				for uid in wasInformedBy:
+					from_id = wasInformedBy[uid]["prov:informant"]
+					to_id = wasInformedBy[uid]["prov:informed"]
+					if from_id not in node_map:
+						continue
+					if to_id not in node_map:
+						continue
+					total_edges += 1
+					edge_id = long(wasInformedBy[uid]["cf:id"])	# Can be used as timestamp
+					if smallest_timestamp == None or edge_id < smallest_timestamp:
+						smallest_timestamp = edge_id
+
+			if "wasDerivedFrom" in json_object:
+				wasDerivedFrom = json_object["wasDerivedFrom"]
+				for uid in wasDerivedFrom:
+					from_id = wasDerivedFrom[uid]["prov:usedEntity"]
+					to_id = wasDerivedFrom[uid]["prov:generatedEntity"]
+					if from_id not in node_map:
+						continue
+					if to_id not in node_map:
+						continue	
+					total_edges += 1
+					edge_id = long(wasDerivedFrom[uid]["cf:id"])	# Can be used as timestamp
+					if smallest_timestamp == None or edge_id < smallest_timestamp:
+						smallest_timestamp = edge_id
+	f.close()			
+
 	output = open(outputfile, "w+")
 	with open(inputfile) as f:
 		for line in f:
@@ -131,6 +195,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 					
 					edge_id = used[uid]["cf:id"]	# Can be used as timestamp
+					adjusted_ts = str(long(edge_id) - smallest_timestamp)
 					
 					edge_flags = "N/A"
 					if "cf:flags" in used[uid]:
@@ -138,7 +203,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(used[uid]["prov:type"]) + edge_flags)
 
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
 			
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -159,6 +224,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
 					edge_id = wasGeneratedBy[uid]["cf:id"]
+					adjusted_ts = str(long(edge_id) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasGeneratedBy[uid]:
@@ -166,7 +232,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasGeneratedBy[uid]["prov:type"]) + edge_flags)
 					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
 			
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
@@ -187,6 +253,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
 					edge_id = wasInformedBy[uid]["cf:id"]
+					adjusted_ts = str(long(edge_id) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasInformedBy[uid]:
@@ -194,7 +261,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasInformedBy[uid]["prov:type"]) + edge_flags)
 
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
 					
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -215,6 +282,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
 					edge_id = wasDerivedFrom[uid]["cf:id"]
+					adjusted_ts = str(long(edge_id) - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasDerivedFrom[uid]:
@@ -222,10 +290,11 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasDerivedFrom[uid]["prov:type"]) + edge_flags)
 					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
 	
 	f.close()
 	output.close()
+	return total_edges
 
 
 if __name__ == "__main__":
@@ -239,4 +308,8 @@ if __name__ == "__main__":
 
 	node_map = {}
 	parse_all_nodes(sys.argv[1], node_map)
-	parse_all_edges(sys.argv[1], sys.argv[2], node_map)
+	total_edges = parse_all_edges(sys.argv[1], sys.argv[2], node_map)
+	total_nodes = len(node_map)
+	stats = open("stats.csv", "a+")
+	stats_str = sys.argv[1] + "," + str(total_nodes) + "," + str(total_edges) + "\n"
+	stats.write(stats_str)
