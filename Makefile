@@ -68,6 +68,7 @@ wget_train:
 		rm wget-normal-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+	mv camflow/stats.csv ../stats_benign.csv
 
 wget_baseline_attack:
 	cd ../../data/attack_baseline && mkdir -p base && mkdir -p stream
@@ -78,6 +79,7 @@ wget_baseline_attack:
 		rm wget-baseline-attack-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+	mv camflow/stats.csv ../stats_baseline_attack.csv
 
 wget_interval_attack:
 	cd ../../data/attack_interval && mkdir -p base && mkdir -p stream
@@ -88,6 +90,12 @@ wget_interval_attack:
 		rm wget-interval-attack-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+	mv camflow/stats.csv ../stats_interval_attack.csv
+
+wget_statistics:
+	python camflow/stats.py stats_benign.csv
+	python camflow/stats.py stats_baseline_attack.csv
+	python camflow/stats.py stats_interval_attack.csv
 
 wget_long_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
