@@ -80,8 +80,8 @@ if __name__ == "__main__":
 	# For runtime performance eval.
 	ts_file_name = "ts_" + sys.argv[3]
 	ts_file = open(ts_file_name, "w")
-	ts_total = 500	# The value should be an commandline argument.
-	ts_cnt = 0
+	ts = 1
+	edge_cnt = 0
 
 	for edge in graph:
 		if cnt < base_graph_size:
@@ -89,10 +89,10 @@ if __name__ == "__main__":
 			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[5] + "\n")
 		else:
 			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + ":" + edge[5] + ":" + edge[6] + "\n")
-			ts_cnt += 1
-			if ts_cnt == ts_total:
-				ts_file.write(edge[6] + "\n")
-				ts_cnt = 0
+			edge_cnt += 1
+			if edge[6] > ts:
+				ts += 1
+				ts_file.write(str(edge_cnt) + "\n")
 
 	print "[success] processing of " + sys.argv[1] + " is done. Data now can be accepted by the graph processing framework."
 	
