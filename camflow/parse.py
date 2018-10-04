@@ -9,7 +9,7 @@ def compare_edges(a, b):
 
 def read_single_graph(file_name):
 	'''
-	edge format: [source_node_id, destination_node_id, source_node_type, source_node_seen, destination_node_seen, destination_node_type, edge_type, timestamp]
+	edge format: [source_node_id, destination_node_id, source_node_type, source_node_seen, destination_node_seen, destination_node_type, edge_type, edge_order, timestamp]
 	'''
 	map_id = {}	# maps original ID to new ID
 	new_id = 0
@@ -40,12 +40,14 @@ def read_single_graph(file_name):
 			source_node_type = attributes[0]
 			destination_node_type = attributes[1]
 			edge_type = attributes[2]
-			timestamp = attributes[3]
+			edge_order = attributes[3]
+			ts = attributes[4]
 			
 			edge[2] = source_node_type
 			edge.append(destination_node_type)
 			edge.append(edge_type)
-			edge.append(timestamp)
+			edge.append(edge_order)
+			edge.append(ts)
 
 			graph.append(edge)
 	
@@ -76,9 +78,9 @@ if __name__ == "__main__":
 	for edge in graph:
 		if cnt < base_graph_size:
 			cnt = cnt + 1
-			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[7] + "\n")
+			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[7] + ":" + edge[8] + "\n")
 		else:
-			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + "\n")
+			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + "\n")
 
 	print "[success] processing of " + sys.argv[1] + " is done. Data now can be accepted by the graph processing framework."
 	

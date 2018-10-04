@@ -8,6 +8,8 @@ import sys
 import json
 import logging
 import hashlib
+import time
+import datetime
 
 class Node:
 	def __init__(self, nid, ntype, secctx, mode, name):
@@ -124,9 +126,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					timestamp = long(used[uid]["cf:jiffies"])
-					if smallest_timestamp == None or timestamp < smallest_timestamp:
-						smallest_timestamp = timestamp
+					timestamp_str = used[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
 
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -138,9 +141,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					timestamp = long(wasGeneratedBy[uid]["cf:jiffies"])
-					if smallest_timestamp == None or timestamp < smallest_timestamp:
-						smallest_timestamp = timestamp
+					timestamp_str = wasGeneratedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
 
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
@@ -152,9 +156,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue
 					total_edges += 1
-					timestamp = long(wasInformedBy[uid]["cf:jiffies"])
-					if smallest_timestamp == None or timestamp < smallest_timestamp:
-						smallest_timestamp = timestamp
+					timestamp_str = wasInformedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
 
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -166,9 +171,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					if to_id not in node_map:
 						continue	
 					total_edges += 1
-					timestamp = long(wasDerivedFrom[uid]["cf:jiffies"])
-					if smallest_timestamp == None or timestamp < smallest_timestamp:
-						smallest_timestamp = timestamp
+					timestamp_str = wasDerivedFrom[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
 	f.close()			
 
 	output = open(outputfile, "w+")
@@ -194,8 +200,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 					
-					ts = used[uid]["cf:jiffies"]
-					adjusted_ts = str(long(ts) - smallest_timestamp)
+					edge_id = used[uid]["cf:id"]
+					ts_str = used[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = str(ts - smallest_timestamp)
 					
 					edge_flags = "N/A"
 					if "cf:flags" in used[uid]:
@@ -203,7 +211,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(used[uid]["prov:type"]) + edge_flags)
 
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + ':' + adjusted_ts + '\t' + '\n')
 			
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -223,8 +231,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					ts = wasGeneratedBy[uid]["cf:jiffies"]
-					adjusted_ts = str(long(ts) - smallest_timestamp)
+					edge_id = wasGeneratedBy[uid]["cf:id"]
+					ts_str = wasGeneratedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = str(ts - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasGeneratedBy[uid]:
@@ -232,7 +242,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasGeneratedBy[uid]["prov:type"]) + edge_flags)
 					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + ':' + adjusted_ts + '\t' + '\n')
 			
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
@@ -252,8 +262,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					ts = wasInformedBy[uid]["cf:jiffies"]
-					adjusted_ts = str(long(ts) - smallest_timestamp)
+					edge_id = wasInformedBy[uid]["cf:id"]
+					ts_str = wasInformedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = str(ts - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasInformedBy[uid]:
@@ -261,7 +273,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasInformedBy[uid]["prov:type"]) + edge_flags)
 
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + ':' + adjusted_ts + '\t' + '\n')
 					
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -281,8 +293,10 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					to_node = node_map[to_id]
 					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
 
-					ts = wasDerivedFrom[uid]["cf:jiffies"]
-					adjusted_ts = str(long(ts) - smallest_timestamp)
+					edge_id = wasDerivedFrom[uid]["cf:id"]
+					ts_str = wasDerivedFrom[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = str(ts - smallest_timestamp)
 
 					edge_flags = "N/A"
 					if "cf:flags" in wasDerivedFrom[uid]:
@@ -290,7 +304,7 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					edge_flags = hashgen(edge_flags)
 					edge_type = hashgen(hashgen(wasDerivedFrom[uid]["prov:type"]) + edge_flags)
 					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + adjusted_ts + '\t' + '\n')
+					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + ':' + adjusted_ts + '\t' + '\n')
 	
 	f.close()
 	output.close()
