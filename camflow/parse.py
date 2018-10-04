@@ -78,7 +78,7 @@ if __name__ == "__main__":
 	cnt = 0
 
 	# For runtime performance eval.
-	ts_file_name = "ts_" + sys.argv[3]
+	ts_file_name = "ts.txt"
 	ts_file = open(ts_file_name, "w")
 	ts = 1.0
 	edge_cnt = 0

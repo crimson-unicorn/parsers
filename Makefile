@@ -64,38 +64,63 @@ wget_train:
 	number=0 ; while [ $$number -le 109 ] ; do \
 		python camflow/prepare.py ../../data/benign/wget-normal-$$number.log wget-normal-preprocessed-$$number.txt ; \
 		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
+		mv ts.txt ../../output/ts-wget-$$number.txt ; \
 		rm error.log ; \
 		rm wget-normal-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
-	mv camflow/stats.csv ../stats_benign.csv
+	mv stats.csv camflow/stats_benign.csv
 
 wget_baseline_attack:
 	cd ../../data/attack_baseline && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 24 ] ; do \
 		python camflow/prepare.py ../../data/attack_baseline/wget-baseline-attack-$$number.log wget-baseline-attack-preprocessed-$$number.txt ; \
 		python camflow/parse.py wget-baseline-attack-preprocessed-$$number.txt ../../data/attack_baseline/base/base-wget-attack-baseline-$$number.txt ../../data/attack_baseline/stream/stream-wget-attack-baseline-$$number.txt ; \
+		mv ts.txt ../../output/ts-wget-attack-baseline-$$number.txt ; \
 		rm error.log ; \
 		rm wget-baseline-attack-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
-	mv camflow/stats.csv ../stats_baseline_attack.csv
+	mv stats.csv camflow/stats_baseline_attack.csv
 
 wget_interval_attack:
 	cd ../../data/attack_interval && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 24 ] ; do \
 		python camflow/prepare.py ../../data/attack_interval/wget-interval-attack-$$number.log wget-interval-attack-preprocessed-$$number.txt ; \
 		python camflow/parse.py wget-interval-attack-preprocessed-$$number.txt ../../data/attack_interval/base/base-wget-attack-interval-$$number.txt ../../data/attack_interval/stream/stream-wget-attack-interval-$$number.txt ; \
+		mv ts.txt ../../output/ts-wget-attack-interval-$$number.txt ; \
 		rm error.log ; \
 		rm wget-interval-attack-preprocessed-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
-	mv camflow/stats.csv ../stats_interval_attack.csv
+	mv stats.csv camflow/stats_interval_attack.csv
 
 wget_statistics:
-	python camflow/stats.py stats_benign.csv
-	python camflow/stats.py stats_baseline_attack.csv
-	python camflow/stats.py stats_interval_attack.csv
+	python camflow/stats.py camflow/stats_benign.csv
+	python camflow/stats.py camflow/stats_baseline_attack.csv
+	python camflow/stats.py camflow/stats_interval_attack.csv
+
+number=0
+
+single_wget_train:
+	cd ../../data/benign && mkdir -p base && mkdir -p stream
+	python camflow/prepare.py ../../data/benign/wget-normal-$(number).log wget-normal-preprocessed-$(number).txt
+	python camflow/parse.py wget-normal-preprocessed-$(number).txt ../../data/benign/base/base-wget-$(number).txt ../../data/benign/stream/stream-wget-$(number).txt
+	mv ts.txt ../../output/ts-wget-$(number).txt
+	rm error.log
+	rm wget-normal-preprocessed-$(number).txt
+	rm stats.csv
+
+attack-type=baseline
+
+single_wget_attack:
+	cd ../../data/attack_$(attack-type) && mkdir -p base && mkdir -p stream
+	python camflow/prepare.py ../../data/attack_$(attack-type)/wget-$(attack-type)-attack-$(number).log wget-$(attack-type)-attack-preprocessed-$(number).txt
+	python camflow/parse.py wget-$(attack-type)-attack-preprocessed-$(number).txt ../../data/attack_$(attack-type)/base/base-wget-attack-$(attack-type)-$(number).txt ../../data/attack_$(attack-type)/stream/stream-wget-attack-$(attack-type)-$(number).txt
+	mv ts.txt ../../output/ts-wget-attack-$(attack-type)-$(number).txt
+	rm error.log
+	rm wget-$(attack-type)-attack-preprocessed-$(number).txt
+	rm stats.csv
 
 wget_long_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
