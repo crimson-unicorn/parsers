@@ -78,7 +78,7 @@ if __name__ == "__main__":
 	for edge in graph:
 		if cnt < base_graph_size:
 			cnt = cnt + 1
-			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[7] + ":" + edge[8] + "\n")
+			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[7] + "\n")
 		else:
 			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[5] + ":" + edge[6] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + "\n")
 
