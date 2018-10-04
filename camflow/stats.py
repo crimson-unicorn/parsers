@@ -15,8 +15,8 @@ def read_stat(file_path):
 		num_node = row[1]
 		num_edge = row[2]
 		cnt += 1
-		average_num_node = average_num_node + (num_node - average_num_node) / cnt
-		average_num_edge = average_num_edge + (num_edge - average_num_edge) / cnt
+		average_num_node = average_num_node + (int(num_node) - average_num_node) / cnt
+		average_num_edge = average_num_edge + (int(num_edge) - average_num_edge) / cnt
 	data.close()
 	return average_num_node, average_num_edge
 
