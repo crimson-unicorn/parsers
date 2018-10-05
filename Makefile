@@ -59,6 +59,9 @@ attack:
 		number=`expr $$number + 1` ; \
 	done
 
+streamspot_statistics:
+	python streamspot/stats.py stats_streamspot.csv
+
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 109 ] ; do \

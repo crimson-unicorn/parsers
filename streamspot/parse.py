@@ -5,6 +5,9 @@ def read_single_graph(file_name, graph_id):
 	'''
 	Read a single graph with ID @graph_id from the file @file_name and return the list of its edges.
 	'''
+	# Get the graph property for statistics
+	stats = open("stats_streamspot.csv", "a+")
+
 	graph = []	# Store graph edges.
 	node_id_seen = []	# Whether this node ID has been seen before.
 	cnt = 1 	# Artificial timestamps of the edges. 
@@ -26,6 +29,11 @@ def read_single_graph(file_name, graph_id):
 				cnt = cnt + 1
 				graph.append(edge)
 	f.close()
+
+	total_edges = len(graph)
+	total_nodes = len(node_id_seen)
+	stats.write(graph_id + "," + str(total_nodes) + "," + str(total_edges) + "\n")
+	stats.close()
 	return graph
 
 def print_instruction():
