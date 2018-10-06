@@ -64,7 +64,7 @@ streamspot_statistics:
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
-	number=0 ; while [ $$number -le 109 ] ; do \
+	number=0 ; while [ $$number -le 124 ] ; do \
 		python camflow/prepare.py ../../data/benign/wget-normal-$$number.log wget-normal-preprocessed-$$number.txt ; \
 		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
 		mv ts.txt ../../output/ts-wget-$$number.txt ; \

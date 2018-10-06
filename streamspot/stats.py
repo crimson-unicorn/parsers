@@ -13,7 +13,7 @@ def analyze(filepath):
 	ID 400 - 499: download
 	ID 500 - 599: CNN
 	"""
-	data = open(file_path, 'r')
+	data = open(filepath, 'r')
 	reader = csv.reader(data)
 
 	average_num_node = 0.0
