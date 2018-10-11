@@ -119,7 +119,7 @@ cadets_train:
 
 cadets_attack:
 	cd ../../data/attack && mkdir -p base && mkdir -p stream
-	number=0 ; while [ $$number -le 24 ] ; do \
+	number=0 ; while [ $$number -le 3 ] ; do \
 		python cadets/prepare.py ../../data/attack/pandex_$$number attack-$$number.txt ; \
 		python camflow/parse.py attack-$$number.txt ../../data/attack/base/base-attack-$$number.txt ../../data/attack/stream/stream-attack-$$number.txt ; \
 		rm -rf ../../data/attack/pandex_$$number ; \
