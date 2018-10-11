@@ -39,6 +39,15 @@ def gen(filepath, name, chunks, ty, fh):
 	fh.write("\t$(call truncate_data,")
 	fh.write(str(start) + "," + str(end) + "," + str(end + 1) + "," + name + "," + str(cnt) + "," + ty + ")\n")
 
+def gen_pandex_attack(fh):
+	"""
+	This function truncates the Pandex attack file at the entries of the attacks (a total of 3 attacks).
+	It writes to the output file using its handle @fh.
+	"""
+	fh.write("pandex:\n")
+	fh.write("\t$(call truncate_data,1,1312731,1312732,pandex,0,attack)\n")
+	fh.write("\t$(call truncate_data,1312732,6126078,6126079,pandex,1,attack)\n")
+	fh.write("\t$(call truncate_data,6126079,10939405,10939406,pandex,2,attack)\n")
 
 if __name__ == "__main__":
 	if (len(sys.argv) < 1):
@@ -57,7 +66,7 @@ if __name__ == "__main__":
 	makefile.write("\n")
 	gen("../../../data/benign/benign3.json", "benign3", 50, "benign", makefile)
 	makefile.write("\n")
-	gen("../../../data/attack/pandex.json", "pandex", 25, "attack", makefile)
+	gen_pandex_attack(makefile)
 	
 	
 	
