@@ -1,0 +1,7 @@
+{
+  "type" : "enum",
+  "name" : "SubjectType",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "doc" : "* SubjectType enumerates the types of execution contexts supported.\r\n     *\r\n     * SUBJECT_PROCESS,    process\r\n     * SUBJECT_THREAD,     thread within a process\r\n     * SUBJECT_UNIT        so far we only know of TRACE BEEP using this",
+  "symbols" : [ "SUBJECT_PROCESS", "SUBJECT_THREAD", "SUBJECT_UNIT", "SUBJECT_BASIC_BLOCK" ]
+}

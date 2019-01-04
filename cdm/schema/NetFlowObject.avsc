@@ -1,0 +1,78 @@
+{
+  "type" : "record",
+  "name" : "NetFlowObject",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "doc" : "* Represents a network flow object. Instantiates an AbstractObject.",
+  "fields" : [ {
+    "name" : "uuid",
+    "type" : {
+      "type" : "fixed",
+      "name" : "UUID",
+      "doc" : "* A host MUST NOT reuse UUIDs at all within their system, even\r\n     * across restarts, and definitely not for 2 distinct objects",
+      "size" : 16
+    },
+    "doc" : "Universally unique identifier for the object"
+  }, {
+    "name" : "baseObject",
+    "type" : {
+      "type" : "record",
+      "name" : "AbstractObject",
+      "doc" : "*  Objects, in general, represent data sources and sinks which\r\n     *  could include sockets, files, memory, and any data in general\r\n     *  that can be an input and/or output to an event.  This record\r\n     *  is intended to be abstract i.e., one should not instantiate an\r\n     *  Object but rather instantiate one of its sub types (ie,\r\n     *  encapsulating records) FileObject, UnnamedPipeObject,\r\n     *  RegistryKeyObject, NetFlowObject, MemoryObject, or\r\n     *  SrcSinkObject.",
+      "fields" : [ {
+        "name" : "permission",
+        "type" : [ "null", {
+          "type" : "fixed",
+          "name" : "SHORT",
+          "size" : 2
+        } ],
+        "doc" : "Permission bits defined over the object (Optional)",
+        "default" : null
+      }, {
+        "name" : "epoch",
+        "type" : [ "null", "int" ],
+        "doc" : "* Used to track when an object is deleted and a new one is\r\n         * created with the same identifier. This is useful for when\r\n         * UUIDs are based on something not likely to be unique, such\r\n         * as file path.",
+        "default" : null
+      }, {
+        "name" : "properties",
+        "type" : [ "null", {
+          "type" : "map",
+          "values" : "string"
+        } ],
+        "doc" : "* Arbitrary key, value pairs describing the entity.\r\n         * NOTE: This attribute is meant as a temporary place holder for items that\r\n         * will become first-class attributes in the next CDM version.",
+        "default" : null,
+        "order" : "ignore"
+      } ]
+    },
+    "doc" : "The base object attributes"
+  }, {
+    "name" : "localAddress",
+    "type" : [ "null", "string" ],
+    "doc" : "* The local IP address for this flow. Optional for when not\r\n         * obtained initially.",
+    "default" : null
+  }, {
+    "name" : "localPort",
+    "type" : [ "null", "int" ],
+    "doc" : "* The local network port for this flow. Optional for AF_UNIX\r\n         * sockets (unnamed and abstract), or for when not obtained\r\n         * initially.",
+    "default" : null
+  }, {
+    "name" : "remoteAddress",
+    "type" : [ "null", "string" ],
+    "doc" : "* The remote IP address for this flow. Optional for binds\r\n         * that are a listening action and not a full connection, or\r\n         * for when not obtained initially.",
+    "default" : null
+  }, {
+    "name" : "remotePort",
+    "type" : [ "null", "int" ],
+    "doc" : "* The remote network port for this flow. Optional for binds\r\n         * that are a listening action and not a full connection. Also\r\n         * optional for AF_UNIX sockets (unnamed and abstract) and for\r\n         * when not obtained intially.",
+    "default" : null
+  }, {
+    "name" : "ipProtocol",
+    "type" : [ "null", "int" ],
+    "doc" : "The IP protocol number e.g., TCP=6",
+    "default" : null
+  }, {
+    "name" : "fileDescriptor",
+    "type" : [ "null", "int" ],
+    "doc" : "The file descriptor (Optional)",
+    "default" : null
+  } ]
+}
