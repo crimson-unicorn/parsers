@@ -1,0 +1,6 @@
+{
+  "type" : "fixed",
+  "name" : "SHORT",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "size" : 2
+}

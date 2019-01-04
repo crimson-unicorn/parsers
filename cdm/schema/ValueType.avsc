@@ -1,0 +1,7 @@
+{
+  "type" : "enum",
+  "name" : "ValueType",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "doc" : "* A value type is either source, sink, or control This is for\r\n     * Event parameters to distinguish source/sink values vs control\r\n     * parameters (such as a file descriptor).",
+  "symbols" : [ "VALUE_TYPE_SRC", "VALUE_TYPE_SINK", "VALUE_TYPE_CONTROL" ]
+}

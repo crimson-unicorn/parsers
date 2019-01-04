@@ -1,0 +1,32 @@
+{
+  "type" : "record",
+  "name" : "ProvenanceAssertion",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "doc" : "* An assertion about the provenance of information",
+  "fields" : [ {
+    "name" : "asserter",
+    "type" : {
+      "type" : "fixed",
+      "name" : "UUID",
+      "doc" : "* A host MUST NOT reuse UUIDs at all within their system, even\r\n     * across restarts, and definitely not for 2 distinct objects",
+      "size" : 16
+    },
+    "doc" : "Which Subject is making this assertion?"
+  }, {
+    "name" : "sources",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "UUID"
+    } ],
+    "doc" : "Object(s) that this Value's data came from.",
+    "default" : null
+  }, {
+    "name" : "provenance",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "ProvenanceAssertion"
+    } ],
+    "doc" : "* Further provenance assertions within this assertion.\r\n\t * For example, to describe a situation in which X asserts that\r\n\t * Y asserts that Z asserts that V came from {p,q}:\r\n\t *\r\n\t * ```\r\n\t * Event {\r\n\t *   subject = X,\r\n\t *   parameters = [\r\n\t *     Value (V) {\r\n\t *       provenance = [\r\n\t *         ProvenanceAssertion {\r\n\t *           asserter = UUID of X,\r\n\t *           sources = [ UUID of p, UUID of q ],\r\n\t *           provenance = [\r\n\t *             ProvenanceAssertion {\r\n\t *               asserter = UUID of Y,\r\n\t *               provenance = [\r\n\t *                 ProvenanceAssertion {\r\n\t *                   asserter = UUID of Z,\r\n\t *                 },\r\n\t *               ],\r\n\t *             },\r\n\t *           ],\r\n\t *         },\r\n\t *       ],\r\n\t *     },\r\n\t *   ],\r\n\t * }\r\n\t * ```\r\n\t * Z should have a provenance assertion\r\n\t * e.g.,\r\n         * \"X asserts that Y asserts that Z comes from {p,q}\".",
+    "default" : null
+  } ]
+}

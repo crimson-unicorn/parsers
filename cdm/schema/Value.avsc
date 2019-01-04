@@ -1,0 +1,116 @@
+{
+  "type" : "record",
+  "name" : "Value",
+  "namespace" : "com.bbn.tc.schema.avro.cdm19",
+  "doc" : "* Values represent transient data, mainly parameters to\r\n     * events. Values are created and used once within an event's\r\n     * execution and are relevant mainly during fine-grained tracking\r\n     * (such as with tag/taint propagation).  Values have tags\r\n     * describing their provenance. Sometimes the actual value's value\r\n     * is reported in addition to the value's metadata\r\n     *\r\n     * The size of the value is the number of elements of type\r\n     * valueDataType. This should be -1 for primitive and complex\r\n     * types.  For arrays, the size is the array length. i.e., if\r\n     * size >= 0, then this value is an array.  A complex value (such as\r\n     * an object) can contain other values (primitives or other\r\n     * complex values) within it, as components.\r\n     *\r\n     * Examples: <br>\r\n     *\r\n     * an integer will have size=-1 and valueDataType=INT, and\r\n     * valueBytes.length=4 bytes <br>\r\n     *\r\n     * an int[4] will have size=4 and valueDataType=INT, and\r\n     * valueBytes.length=16 bytes (4*4) <br>\r\n     *\r\n     * a string s=\"abc\" has size=3 and valueDataType=CHAR, and\r\n     * valueBytes.length=12 bytes (UTF32_BE encoding; 4 bytes per\r\n     * char) <br>\r\n     *\r\n     * an MyClass obj has size=-1, valueDataType=COMPLEX,\r\n     * runtimeDataType=\"MyClass\", valueBytes=<pointer> <br>",
+  "fields" : [ {
+    "name" : "size",
+    "type" : "int",
+    "doc" : "The size of the value: the number of elements of type valueDataType; -1 for non-arrays",
+    "default" : -1
+  }, {
+    "name" : "type",
+    "type" : {
+      "type" : "enum",
+      "name" : "ValueType",
+      "doc" : "* A value type is either source, sink, or control This is for\r\n     * Event parameters to distinguish source/sink values vs control\r\n     * parameters (such as a file descriptor).",
+      "symbols" : [ "VALUE_TYPE_SRC", "VALUE_TYPE_SINK", "VALUE_TYPE_CONTROL" ]
+    },
+    "doc" : "The type indicates whether it's a source, sink, or control value"
+  }, {
+    "name" : "valueDataType",
+    "type" : {
+      "type" : "enum",
+      "name" : "ValueDataType",
+      "doc" : "* A value data type is one of the primitive data types. A string is treated as a char array",
+      "symbols" : [ "VALUE_DATA_TYPE_BYTE", "VALUE_DATA_TYPE_BOOL", "VALUE_DATA_TYPE_CHAR", "VALUE_DATA_TYPE_SHORT", "VALUE_DATA_TYPE_INT", "VALUE_DATA_TYPE_FLOAT", "VALUE_DATA_TYPE_LONG", "VALUE_DATA_TYPE_DOUBLE", "VALUE_DATA_TYPE_POINTER32", "VALUE_DATA_TYPE_POINTER64", "VALUE_DATA_TYPE_COMPLEX" ]
+    },
+    "doc" : "The actual datatype of the value elements, e.g., int, double, byte, etc. (Optional)\r\n         *  Strings are treated as char[] so type=CHAR\r\n         *  String[] is a COMPLEX value whose components are the string values (each modeled as a char[])\r\n         *  Complex composite objects comprising of primitive values use the COMPLEX type"
+  }, {
+    "name" : "isNull",
+    "type" : "boolean",
+    "doc" : "Whether this value is null, needed to indicate null objects (default: false)",
+    "default" : false
+  }, {
+    "name" : "name",
+    "type" : [ "null", "string" ],
+    "doc" : "the name of the Value, string. (Optional)",
+    "default" : null
+  }, {
+    "name" : "runtimeDataType",
+    "type" : [ "null", "string" ],
+    "doc" : "The runtime data type of the value (Optional); For example, an object of dataType=COMPLEX, can have\r\n         *  a runtime data type of say \"MyClass\"",
+    "default" : null
+  }, {
+    "name" : "valueBytes",
+    "type" : [ "null", "bytes" ],
+    "doc" : "* The actual bytes of the value in Big Endian format, e.g.,\r\n         * an int is converted to a 4 byte buffer (Optional)\r\n         *\r\n         * Strings are represented as an array of UTF32_BE encoded\r\n         * characters (i.e., 4 bytes per char)",
+    "default" : null
+  }, {
+    "name" : "provenance",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : {
+        "type" : "record",
+        "name" : "ProvenanceAssertion",
+        "doc" : "* An assertion about the provenance of information",
+        "fields" : [ {
+          "name" : "asserter",
+          "type" : {
+            "type" : "fixed",
+            "name" : "UUID",
+            "doc" : "* A host MUST NOT reuse UUIDs at all within their system, even\r\n     * across restarts, and definitely not for 2 distinct objects",
+            "size" : 16
+          },
+          "doc" : "Which Subject is making this assertion?"
+        }, {
+          "name" : "sources",
+          "type" : [ "null", {
+            "type" : "array",
+            "items" : "UUID"
+          } ],
+          "doc" : "Object(s) that this Value's data came from.",
+          "default" : null
+        }, {
+          "name" : "provenance",
+          "type" : [ "null", {
+            "type" : "array",
+            "items" : "ProvenanceAssertion"
+          } ],
+          "doc" : "* Further provenance assertions within this assertion.\r\n\t * For example, to describe a situation in which X asserts that\r\n\t * Y asserts that Z asserts that V came from {p,q}:\r\n\t *\r\n\t * ```\r\n\t * Event {\r\n\t *   subject = X,\r\n\t *   parameters = [\r\n\t *     Value (V) {\r\n\t *       provenance = [\r\n\t *         ProvenanceAssertion {\r\n\t *           asserter = UUID of X,\r\n\t *           sources = [ UUID of p, UUID of q ],\r\n\t *           provenance = [\r\n\t *             ProvenanceAssertion {\r\n\t *               asserter = UUID of Y,\r\n\t *               provenance = [\r\n\t *                 ProvenanceAssertion {\r\n\t *                   asserter = UUID of Z,\r\n\t *                 },\r\n\t *               ],\r\n\t *             },\r\n\t *           ],\r\n\t *         },\r\n\t *       ],\r\n\t *     },\r\n\t *   ],\r\n\t * }\r\n\t * ```\r\n\t * Z should have a provenance assertion\r\n\t * e.g.,\r\n         * \"X asserts that Y asserts that Z comes from {p,q}\".",
+          "default" : null
+        } ]
+      }
+    } ],
+    "doc" : "* Assertions about the provenance of this value\r\n         * (e.g., the file that data is claimed to come from).\r\n         *\r\n         * This is a direct assertion about provenance for systems that don't\r\n         * use tags to track data flows.",
+    "default" : null
+  }, {
+    "name" : "tag",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : {
+        "type" : "record",
+        "name" : "TagRunLengthTuple",
+        "doc" : "* This record is a single tuple in a run length encoding of tags",
+        "fields" : [ {
+          "name" : "numValueElements",
+          "type" : "int",
+          "default" : 0
+        }, {
+          "name" : "tagId",
+          "type" : "UUID"
+        } ]
+      }
+    } ],
+    "doc" : "* The value's tag expression describing its provenance (Optional)\r\n         * Since value could be an array, the tag can use run length encoding if needed.",
+    "default" : null
+  }, {
+    "name" : "components",
+    "type" : [ "null", {
+      "type" : "array",
+      "items" : "Value"
+    } ],
+    "doc" : "A complex value might comprise other component values if needed (Optional)",
+    "default" : null
+  } ]
+}
