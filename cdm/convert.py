@@ -58,7 +58,7 @@ def idgen(hashstr):
 	"""
 	hasher = hashlib.md5()
 	hasher.update(hashstr)
-	return long(hasher.hexdigest()[:16], 16) # make sure it is only 32 bits
+	return long(hasher.hexdigest()[:16], 32)
 
 def labelgen(values):
 	"""Create labels based on nodes' information @values.
@@ -88,9 +88,17 @@ def process_cdm_srcsink(record_value, input_format):
 	# Currently, no other type-specific or type-general values to be appended as of 01-04-19.
 	if type_value == 'SRCSINK_IPC':
 		pass
+	# fivedirections
+	elif type_value == 'SRCSINK_DATABASE':
+		pass
+	elif type_value == 'SRCSINK_PROCESS_MANAGEMENT':
+		pass
+	# trace
+	elif type_value == 'SRCSINK_UNKNOWN':
+		pass
 	else:
 		print(record_value)
-		raise KeyError('CDM_TYPE_SUBJECT: type is undefined.')
+		raise KeyError('CDM_TYPE_SRCSINK: type is undefined.')
 
 	return values
 
@@ -108,6 +116,12 @@ def process_cdm_subject(record_value, input_format):
 	# Currently, no other type-specific or type-general values to be appended as of 01-04-19.
 	if type_value == 'SUBJECT_PROCESS':
 		pass
+	# fivedirections
+	elif type_value == 'SUBJECT_THREAD':
+		pass
+	# trace
+	elif type_value == 'SUBJECT_UNIT':
+		pass
 	else:
 		print(record_value)
 		raise KeyError('CDM_TYPE_SUBJECT: type is undefined.')
@@ -117,9 +131,10 @@ def process_cdm_subject(record_value, input_format):
 def process_cdm_file(record_value, input_format):
 	"""Process CDM record typed CDM_TYPE_FILE.
 
-	values = {'type'}
+	values = {'uuid', type'}
 	"""
 	values = dict()
+	values['uuid'] = read_field(record_value['uuid'], input_format) # we store UUID to detect identical records
 	if 'type' not in record_value:
 		raise KeyError('CDM_TYPE_FILE: type is missing.')
 	type_value = read_field(record_value['type'], input_format)
@@ -132,9 +147,21 @@ def process_cdm_file(record_value, input_format):
 		pass
 	elif type_value == 'FILE_OBJECT_DIR':
 		pass
+	# five directions
+	elif type_value == 'FILE_OBJECT_PEFILE':
+		pass
+	elif type_value == 'FILE_OBJECT_CHAR':
+		pass
+	elif type_value == 'FILE_OBJECT_BLOCK':
+		pass
+	elif type_value == 'FILE_OBJECT_NAMED_PIPE':
+		pass
+	# trace
+	elif type_value == 'FILE_OBJECT_LINK':
+		pass
 	else:
 		print(record_value)
-		raise KeyError('CDM_TYPE_SUBJECT: type is undefined.')
+		raise KeyError('CDM_TYPE_FILE: type is undefined.')
 
 	return values
 
@@ -183,14 +210,21 @@ def process_cdm_pipe(record_value, input_format):
 	if 'sourceUUID' not in record_value:
 		raise KeyError('CDM_TYPE_PIPE: sourceUUID is missing.')
 	sourceUUID = record_value['sourceUUID']
-	UUID = read_field(sourceUUID[CDM_UUID], input_format)
-	values.append(idgen(UUID))
+	if type(sourceUUID).__name__ == 'NoneType':
+		# in trace data, NoneType exists
+		values.append('None')
+	else:
+		UUID = read_field(sourceUUID[CDM_UUID], input_format)
+		values.append(idgen(UUID))
 
 	if 'sinkUUID' not in record_value:
 		raise KeyError('CDM_TYPE_PIPE: sinkUUID is missing.')
 	sinkUUID = record_value['sinkUUID']
-	UUID = read_field(sinkUUID[CDM_UUID], input_format)
-	values.append(idgen(UUID))
+	if type(sinkUUID).__name__ == 'NoneType':
+		values.append('None')
+	else:
+		UUID = read_field(sinkUUID[CDM_UUID], input_format)
+		values.append(idgen(UUID))
 
 	# Currently, no other values to be appended as of 01-04-19.
 
@@ -299,6 +333,34 @@ def process_cdm_event(record_value, input_format):
 		pass
 	elif type_value == 'EVENT_BIND':
 		pass
+	# clearscope
+	elif type_value == 'EVENT_DUP':
+		pass
+	elif type_value == 'EVENT_CHECK_FILE_ATTRIBUTES':
+		pass
+	elif type_value == 'EVENT_WRITE_SOCKET_PARAMS':
+		pass
+	elif type_value == 'EVENT_READ_SOCKET_PARAMS':
+		pass
+	# fivedirections
+	elif type_value == 'EVENT_UPDATE':
+		pass
+	elif type_value == 'EVENT_LOADLIBRARY':
+		pass
+	elif type_value == 'EVENT_CREATE_THREAD':
+		pass
+	elif type_value == 'EVENT_LOGOUT':
+		pass
+	# theia
+	elif type_value == 'EVENT_BOOT':
+		pass
+	elif type_value == 'EVENT_CLONE':
+		pass
+	elif type_value == 'EVENT_SHM':
+		pass
+	# trace
+	elif type_value == 'EVENT_UNIT':
+		pass
 	else:
 		print(record_value)
 		raise KeyError('CDM_TYPE_EVENT: type is undefined.')
@@ -319,10 +381,44 @@ def process_cdm_principal(record_value, input_format):
 	# Currently, no other type-specific or type-general values to be appended as of 01-04-19.
 	if type_value == 'PRINCIPAL_LOCAL':
 		pass
+	elif type_value == 'PRINCIPAL_REMOTE':
+		pass
 	else:
 		print(record_value)
 		raise KeyError('CDM_TYPE_PRINCIPAL: type is undefined.')
 
+	return values
+
+def process_cdm_host(record_value, input_format):
+	"""Process CDM record typed CDM_TYPE_HOST.
+
+	values = {'type'}
+	"""
+	values = dict()
+	if 'hostType' not in record_value:
+		raise KeyError('CDM_TYPE_HOST: host type is missing.')
+	type_value = read_field(record_value['hostType'], input_format)
+	values['type'] = type_value
+	
+	# Currently, no other type-specific or type-general values to be appended as of 01-05-19.
+	if type_value == 'HOST_DESKTOP':
+		pass
+	else:
+		print(record_value)
+		raise KeyError('CDM_TYPE_HOST: host type is undefined.')
+
+	return values
+
+def process_cdm_memory(record_value, input_format):
+	"""Process CDM record typed CDM_TYPE_MEMORY.
+
+	values = ['type']
+	"""
+	values = list()
+	# type must be a MEMORY_OBJECT
+	values.append('MEMORY_OBJECT')
+	
+	# Currently, no other type-specific or type-general values to be appended as of 01-05-19.
 	return values
 
 def generate_output(nodes, edges, fp):
@@ -416,9 +512,17 @@ for line in f:
 	elif cdm_record_type == CDM_TYPE_FILE:
 		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
 		values = process_cdm_file(cdm_record_value, input_format)
-
+		
 		if uuid in nodes:
-			raise ValueError('CDM_TYPE_FILE: UUID is not unique.')
+			# clearscope contain identical records
+			# check if the original UUIDs are the same
+			node = nodes[uuid]
+			nodeUUID = node['uuid']
+			if nodeUUID == read_field(cdm_record_value['uuid'], input_format):
+				continue	# if simply because identical records, we just drop the record
+			else:	# if hashing collision occurs
+				print(uuid)
+				raise ValueError('CDM_TYPE_FILE: UUID is not unique.')
 		nodes[uuid] = values
 
 	elif cdm_record_type == CDM_TYPE_SOCK:
@@ -446,7 +550,6 @@ for line in f:
 		# to make sure we don't see two edges with the same UUIDs
 		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
 		if uuid in edgeUUID:
-			print(cdm_record_value)
 			raise ValueError('CDM_TYPE_EVENT: UUID is not unique.')
 		edgeUUID.add(uuid)
 
@@ -463,7 +566,37 @@ for line in f:
 		if uuid in nodes:
 			raise ValueError('CDM_TYPE_PRINCIPAL: UUID is not unique.')
 		nodes[uuid] = values
+	# clearscope
+	elif cdm_record_type == CDM_TYPE_TAG:
+		pass
+	# fivedirections
+	elif cdm_record_type == CDM_TYPE_STARTMARKER:
+		pass
+	elif cdm_record_type == CDM_TYPE_TIMEMARKER:
+		pass
+	elif cdm_record_type == CDM_TYPE_HOST:
+		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
+		values = process_cdm_host(cdm_record_value, input_format)
 
+		if uuid in nodes:
+			raise ValueError('CDM_TYPE_HOST: UUID is not unique.')
+		nodes[uuid] = values
+	elif cdm_record_type == CDM_TYPE_KEY:
+		pass
+	elif cdm_record_type == CDM_TYPE_MEMORY:
+		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
+		values = process_cdm_memory(cdm_record_value, input_format)
+
+		if uuid in nodes:
+			raise ValueError('CDM_TYPE_MEMORY: UUID is not unique.')
+		nodes[uuid] = values
+	elif cdm_record_type == CDM_TYPE_ENDMARKER:
+		pass
+	# trace
+	elif cdm_record_type == CDM_TYPE_UNITDEPENDENCY:
+		# TODO
+		# Do we consider this record a type of edge? If so, we should not pass.
+		pass
 	else:
 		print(cdm_record)
 		raise KeyError('CDM record type is undefined.')
