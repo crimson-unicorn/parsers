@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys, argparse, json, hashlib
+
 from constants import *
 
 parser = argparse.ArgumentParser(description='Convert CDM data to Unicorn')
@@ -58,6 +59,20 @@ def idgen(hashstr):
 	hasher = hashlib.md5()
 	hasher.update(hashstr)
 	return long(hasher.hexdigest()[:16], 16) # make sure it is only 32 bits
+
+def labelgen(values):
+	"""Create labels based on nodes' information @values.
+
+	"""
+	hasher = hashlib.md5()
+	if isinstance(values, dict):
+		hasher.update(values['type'])
+		return hasher.hexdigest()
+	elif isinstance(values, list):
+		hasher.update(values[0])
+		return hasher.hexdigest()
+	else:
+		raise TypeError('Unknown type of the input.')
 
 def process_cdm_srcsink(record_value, input_format):
 	"""Process CDM record typed CDM_TYPE_SRCSINK.
@@ -184,9 +199,12 @@ def process_cdm_pipe(record_value, input_format):
 def process_cdm_event(record_value, input_format):
 	"""Process CDM record typed CDM_TYPE_EVENT.
 
-	value = {'type'}
+	value = {'uuid', type', 'subjectUUID', 'object1UUID', 'object2UUID', 'timestamp'}
 	"""
 	values = dict()
+	# We save 'uuid' of the edge in edge values for debugging purposes.
+	values['uuid'] = idgen(read_field(record_value['uuid'], input_format))
+
 	if 'type' not in record_value:
 		raise KeyError('CDM_TYPE_EVENT: type is missing.')
 	type_value = read_field(record_value['type'], input_format)
@@ -197,21 +215,21 @@ def process_cdm_event(record_value, input_format):
 		pass
 	else:
 		subjectUUID = read_field(subject[CDM_UUID], input_format)
-		values['subjectUUID'] = subjectUUID
+		values['subjectUUID'] = idgen(subjectUUID)
 
 	object1 = record_value['predicateObject']
 	if type(object1).__name__ == 'NoneType':
 		pass
 	else:
 		object1UUID = read_field(object1[CDM_UUID], input_format)
-		values['object1UUID'] = object1UUID
+		values['object1UUID'] = idgen(object1UUID)
 
 	object2 = record_value['predicateObject2']
 	if type(object2).__name__ == 'NoneType':
 		pass
 	else:
 		object2UUID = read_field(object2[CDM_UUID], input_format)
-		values['object2UUID'] = object2UUID	
+		values['object2UUID'] = idgen(object2UUID)
 
 	timestamp = read_field(record_value['timestampNanos'], input_format)
 	values['timestamp'] = timestamp
@@ -277,17 +295,71 @@ def process_cdm_event(record_value, input_format):
 		pass
 	elif type_value == 'EVENT_OTHER':
 		pass
+	elif type_value == 'EVENT_FLOWS_TO':
+		pass
 	else:
 		print(record_value)
 		raise KeyError('CDM_TYPE_EVENT: type is undefined.')
 
 	return values
 
+def generate_output(nodes, edges, fp):
+	"""Output parsed file to the file path @fp.
+
+	"""
+	f = open(fp, 'w')
+	for edge in edges:
+		if 'subjectUUID' not in edge:
+			print('This edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + ' does not have Subject node.')
+			continue
+		if 'object1UUID' not in edge:
+			print('This edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + ' does not have Object node.')
+			continue			# Note that if the edge does not have object1UUID
+								# it shall not have object2UUID.
+		# In the above two cases, we will dimiss the edge.
+		if edge['subjectUUID'] not in nodes:
+			# raise ValueError('An unmatched subject UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+			print('An unmatched subject UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+			continue
+		else:
+			srcNodeID = edge['subjectUUID']
+			srcNode = nodes[srcNodeID]
+			srcNodeLabel = labelgen(srcNode)
+
+		if edge['object1UUID'] not in nodes:
+			# raise ValueError('An unmatched object1 UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+			print('An unmatched object1 UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+			continue
+		else:
+			dstNodeID = edge['object1UUID']
+			dstNode = nodes[dstNodeID]
+			dstNodeLabel = labelgen(dstNode)
+
+		f.write(str(srcNodeID) + '\t' + str(dstNodeID) + '\t' + srcNodeLabel + ":" + dstNodeLabel + ":" + labelgen(edge) + ":" + str(edge['timestamp']) + "\t" + "\n")
+
+
+		if 'object2UUID' in edge:
+			if edge['object2UUID'] not in nodes:
+				# raise ValueError('An unmatched object2 UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+				print('An unmatched object2 UUID from edge (' + str(edge['uuid']) + ') of type: ' + edge['type'] + '.')
+				continue
+			else:
+				dstNode2ID = edge['object2UUID']
+				dstNode2 = nodes[dstNode2ID]
+				dstNode2Label = labelgen(dstNode2)
+
+			f.write(str(srcNodeID) + '\t' + str(dstNode2ID) + '\t' + srcNodeLabel + ":" + dstNode2Label + ":" + labelgen(edge) + ":" + str(edge['timestamp']) + "\t" + "\n")
+	
+	f.close()
+
 # uuid -> ['type', ...]
 nodes = dict()
 
-# uuid -> ['type', ...]
-edges = dict()
+# ['type', ...]
+edges = list()
+
+# for debugging: make sure no two edges have the same UUIDs
+edgeUUID = set()
 
 if input_format == 'avro':
 	raise NotImplementedError('CDM avro format is not supported as of 01-04-09.')
@@ -347,30 +419,28 @@ for line in f:
 		# Do we consider PIPE an edge or a vertex?
 
 	elif cdm_record_type == CDM_TYPE_EVENT:
+		# We don't really care about UUIDs of the edges.
+		# But for debugging purposes, we put them in a set
+		# to make sure we don't see two edges with the same UUIDs
 		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
-		values = process_cdm_event(cdm_record_value, input_format)
-
-		if uuid in edges:
+		if uuid in edgeUUID:
 			print(cdm_record_value)
-			raise ValueError('CDM_TYPE_EVENT: UUID is not unique')
-		edges[uuid] = values
+			raise ValueError('CDM_TYPE_EVENT: UUID is not unique.')
+		edgeUUID.add(uuid)
+
+		values = process_cdm_event(cdm_record_value, input_format)
+		# TODO:
+		# Verify that: within a single tracing file, timestamps seem to be non-decreasing.
+		# This means that appending edges to the list @edges preserve the order of the events.
+		edges.append(values)
 
 	else:
 		print(cdm_record_value)
 		raise KeyError('CDM record type is undefined.')
 
+f.close()
 
-
-		
-
-
-
-
-
-
-
-
-
+generate_output(nodes, edges, output_locat)
 
 
 
