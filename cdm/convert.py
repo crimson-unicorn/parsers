@@ -297,9 +297,31 @@ def process_cdm_event(record_value, input_format):
 		pass
 	elif type_value == 'EVENT_FLOWS_TO':
 		pass
+	elif type_value == 'EVENT_BIND':
+		pass
 	else:
 		print(record_value)
 		raise KeyError('CDM_TYPE_EVENT: type is undefined.')
+
+	return values
+
+def process_cdm_principal(record_value, input_format):
+	"""Process CDM record typed CDM_TYPE_PRINCIPAL.
+
+	values = {'type'}
+	"""
+	values = dict()
+	if 'type' not in record_value:
+		raise KeyError('CDM_TYPE_PRINCIPAL: type is missing.')
+	type_value = read_field(record_value['type'], input_format)
+	values['type'] = type_value
+
+	# Currently, no other type-specific or type-general values to be appended as of 01-04-19.
+	if type_value == 'PRINCIPAL_LOCAL':
+		pass
+	else:
+		print(record_value)
+		raise KeyError('CDM_TYPE_PRINCIPAL: type is undefined.')
 
 	return values
 
@@ -434,8 +456,16 @@ for line in f:
 		# This means that appending edges to the list @edges preserve the order of the events.
 		edges.append(values)
 
+	elif cdm_record_type == CDM_TYPE_PRINCIPAL:
+		uuid = idgen(read_field(cdm_record_value['uuid'], input_format))
+		values = process_cdm_principal(cdm_record_value, input_format)
+
+		if uuid in nodes:
+			raise ValueError('CDM_TYPE_PRINCIPAL: UUID is not unique.')
+		nodes[uuid] = values
+
 	else:
-		print(cdm_record_value)
+		print(cdm_record)
 		raise KeyError('CDM record type is undefined.')
 
 f.close()
