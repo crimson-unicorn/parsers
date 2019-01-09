@@ -23,3 +23,22 @@ java -jar avro-tools-1.8.2.jar tojson <AVRO_FILE_DATA_PATH> > <JSON_FILE_LOCATIO
 Note:
 - You must provide a valid `<AVRO_FILE_DATA_PATH>` that contains the CDM/Avro files to convert.
 - The tool will output JSON records to stdout. We use `>` to redirect the output to a provided path `<JSON_FILE_LOCATION>` and dismiss any possible warnings using `2>/dev/null`.
+
+## Prerequisite
+We must parse all segmented datasets together so that we (hopefully) will not have any unmatched subject/object `UUID`s.
+To do so, we may employ a key-value database (if there is a space constraint). 
+We tried to use Python’s `sqlite3` database, but the performance is disappointing.
+
+### Installation
+pip install -U sqlitedict
+
+## Issues
+### Cadets
+- The following `EVENT` types do not follow CDM semantics correctly:
+	* `EVENT_FCNTL`: missing `object`
+	* `EVENT_LOGIN`: missing `object`
+	* `EVENT_LINK`: missing `object2`
+	* `EVENT_MPROTECT`: missing `object`
+	* `EVENT_OPEN`: missing `object`
+	* `EVENT_OTHER`: missing `object`
+	* `EVENT_SIGNAL`: missing `object`
