@@ -1,5 +1,45 @@
+cadets-e3-official=1DpyVpK9JWNlXzhlzzeuKO_gD8BSosn--
+cadets-e3-official-json=1AcWrYiBmgAqp7DizclKJYYJJBQbnDMfb
+cadets-e3-official-1=1sIpBepnKw0kz4yZviUD_dPZWz0EAfrAS
+cadets-e3-official-1-json=1XLCEhf5DR8xw3S-Fimcj32IKnfzHFPJW
+cadets-e3-official-2=159Enm1TChO9nUvUE2UhcAlZH5nv9CZ2e
+cadets-e3-official-2-json=1EycO23tEvZVnN3VxOHZ7gdbSCwqEZTI1
+
+clearscope-e3-official=1XVdgTyu2Lr8K13XUuLZ0B09BjbTwXGen
+clearscope-e3-official-json=1z1KtBvS-XBwCt3DlkI6yS1UO7_1sVvB6
+clearscope-e3-official-1=1Mz0lqI2iUu4RyM8WY_n8-0wf7HBtdILx
+clearscope-e3-official-1-json=1cEdDdmDACkeTmC04vUwW8WXqn36t4DE4
+clearscope-e3-official-2=17UJnLTwJQFfaVsnuKT27WiNIXSMxAbhv
+clearscope-e3-official-2-json=11bVukedxRn8lVPmbBD2S6juUlqL4cI6b
+
+fivedirections-e3-official=1JnoL7X2h1JIciox9OXPCXivBQVZAZXZy
+fivedirections-e3-official-json=1XjX2Tlb3H0XEHggF3IM0vDIsV_lSlcBN
+fivedirections-e3-official-2=1IHlz1s94ckTSaVWw9iyTeQ8-e6NNZDLq
+fivedirections-e3-official-2-json=1BeP80zUUmm4eZl0UuU43PsKNkl_xgskj
+fivedirections-e3-official-3=1s5AgodIRlcp7bD-sRQzKpi6VFvNOk1GH
+fivedirections-e3-official-3-json=13OvCFAxy23D9CZuheT5l7BhNhZN_5kE-
+
+theia-e3-official-1r=1yksk4I9DBnl0Tca_Y0eaiNcpRNccB9sF
+theia-e3-official-1r-json=10cecNtR3VsHfV0N-gNEeoVeB89kCnse5
+theia-e3-official-3=10KZG-8ET9CRG9qc8OmEQMaCgf6uSEylD
+theia-e3-official-3-json=1dWJecuLXZMksKAPo8348Q6L5DiccsS1u
+theia-e3-official-5m=1krhA9Rco7W5hZG6md3TqB1aH2FOjxBn3
+theia-e3-official-5m-json=1zbgWJgF7F0fI6JhViqQZoo6AWdoV5YFK
+theia-e3-official-6r=13rgPgHunDV1dSNX9U8bSOem56StlUmqF
+theia-e3-official-6r-json=1Kadc6CUTb4opVSDE4x6RFFnEy0P1cRp0
+
+trace-e3-official=1HyJ8du-nJcls91Yz1jDSMIJJ_ih6n_Ui
+trace-e3-official-json=1sfIbavsUFwmB-irSGY1TZZ0Sq1dZqF9G
+trace-e3-official-1=1N7qMHTRKJRyg7TkalORb48TrXDZTK8lY
+trace-e3-official-1-json=1GG1aUnPjjzzdbxznVTN8X6oVfA-K4oIV
+
 prepare:
 	wget http://apache.claz.org/avro/stable/java/avro-tools-1.8.2.jar
+
+download:
+	curl -c ./cookie -s -L "https://drive.google.com/uc?export=download&id=$(fivedirections-e3-official)" > /dev/null
+	curl -Lb ./cookie "https://drive.google.com/uc?export=download&confirm=`awk '/download/ {print $NF}' ./cookie`&id=$(fivedirections-e3-official)" -o fivedirections-e3-official.bin.tar.gz
+	tar xvzf fivedirections-e3-official.bin.tar.gz
 
 tojson:
 	java -jar avro-tools-1.8.2.jar tojson avro/cadets-e3/ta1-cadets-e3-official-1.bin > json/cadets-e3/cadets-e3-1-0.json 2>/dev/null
@@ -13,11 +53,28 @@ tojson:
 	java -jar avro-tools-1.8.2.jar tojson avro/cadets-e3/ta1-cadets-e3-official-2.bin > json/cadets-e3/cadets-e3-2-0.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/cadets-e3/ta1-cadets-e3-official-2.bin.1 > json/cadets-e3/cadets-e3-2-1.json 2>/dev/null
 	
-	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official.bin > json/clearscope-e3/clearscope-e3-0.json 2>/dev/null
-	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official.bin.1 > json/clearscope-e3/clearscope-e3-1.json 2>/dev/null
-	
-	java -jar avro-tools-1.8.2.jar tojson avro/ta1-fivedirections-e3-official-3.bin > json/fivedirections-e3-3.json 2>/dev/null
-	
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin > json/clearscope-e3/clearscope-e3-1-0.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.1 > json/clearscope-e3/clearscope-e3-1-1.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.2 > json/clearscope-e3/clearscope-e3-1-2.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.3 > json/clearscope-e3/clearscope-e3-1-3.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.4 > json/clearscope-e3/clearscope-e3-1-4.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.5 > json/clearscope-e3/clearscope-e3-1-5.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.6 > json/clearscope-e3/clearscope-e3-1-6.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.7 > json/clearscope-e3/clearscope-e3-1-7.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.8 > json/clearscope-e3/clearscope-e3-1-8.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.9 > json/clearscope-e3/clearscope-e3-1-9.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.10 > json/clearscope-e3/clearscope-e3-1-10.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.11 > json/clearscope-e3/clearscope-e3-1-11.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.12 > json/clearscope-e3/clearscope-e3-1-12.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.13 > json/clearscope-e3/clearscope-e3-1-13.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.14 > json/clearscope-e3/clearscope-e3-1-14.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.15 > json/clearscope-e3/clearscope-e3-1-15.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.16 > json/clearscope-e3/clearscope-e3-1-16.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.17 > json/clearscope-e3/clearscope-e3-1-17.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.18 > json/clearscope-e3/clearscope-e3-1-18.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/clearscope-e3/ta1-clearscope-e3-official-1.bin.19 > json/clearscope-e3/clearscope-e3-1-19.json 2>/dev/null
+
+
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin > json/theia-e3/theia-e3-1-0.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin.1 > json/theia-e3/theia-e3-1-1.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin.2 > json/theia-e3/theia-e3-1-2.json 2>/dev/null
@@ -28,9 +85,12 @@ tojson:
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin.7 > json/theia-e3/theia-e3-1-7.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin.8 > json/theia-e3/theia-e3-1-8.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-1r.bin.9 > json/theia-e3/theia-e3-1-9.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-3.bin > json/theia-e3/theia-e3-3-0.json 2>/dev/null
+	java -jar avro-tools-1.8.2.jar tojson avro/theia-e3/ta1-theia-e3-official-5m.bin > json/theia-e3/theia-e3-5-0.json 2>/dev/null
 
-
+	java -jar avro-tools-1.8.2.jar tojson avro/fivedirections-e3/ta1-fivedirections-e3-official-3.bin > json/fivedirections-e3/fivedirections-e3-3.json 2>/dev/null
 	
+
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.1 > json/trace-e3-1-1.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.2 > json/trace-e3-1-2.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.3 > json/trace-e3-1-3.json 2>/dev/null
@@ -46,7 +106,7 @@ clearscope:
 	python convert.py --system clearscope --source json/clearscope-e3/ --save clearscope-e3.txt
 
 fivedirections:
-	python convert.py --source json/fivedirections-e3/ --save fivedirections-e3.txt
+	python convert.py --system fivedirections --source json/fivedirections-e3/ --save fivedirections-e3.txt
 
 theia:
 	python convert.py --system theia --source json/theia-e3/ --save theia-e3.txt

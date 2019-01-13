@@ -1473,13 +1473,35 @@ elif system == 'clearscope':
 		fh.close()
 elif system == 'theia':
 	first = ['theia-e3-1-0.json', 'theia-e3-1-1.json', 'theia-e3-1-2.json', 'theia-e3-1-3.json', 'theia-e3-1-4.json', 'theia-e3-1-5.json', 'theia-e3-1-6.json', 'theia-e3-1-7.json', 'theia-e3-1-8.json', 'theia-e3-1-9.json']
+	second = ['theia-e3-3-0.json']
+	third = ['theia-e3-5-0.json']
 
 	out_first = '0-' + output_locat
+	out_second = '1-' + output_locat
+	out_third = '2-' + output_locat
 
 	for data_file in first:
 		with open(os.path.join(input_source, data_file), 'r') as fh:
 			generate_output(nodes, fh, out_first)
 		fh.close()
+	for data_file in second:
+		with open(os.path.join(input_source, data_file), 'r') as fh:
+			generate_output(nodes, fh, out_second)
+		fh.close()
+	for data_file in third:
+		with open(os.path.join(input_source, data_file), 'r') as fh:
+			generate_output(nodes, fh, out_third)
+		fh.close()
+elif system == 'fivedirections':
+	third = ['fivedirections-e3-3.json']
+
+	out_third = '1-' + output_locat
+
+	for data_file in third:
+		with open(os.path.join(input_source, data_file), 'r') as fh:
+			generate_output(nodes, fh, out_third)
+		fh.close()
+
 
 # nodes.close()
 
