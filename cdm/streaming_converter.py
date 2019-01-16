@@ -1253,17 +1253,15 @@ def process_cdm_memory(record_value, input_format, nid):
 	# Currently, no other type-specific or type-general values to be appended as of 01-05-19.
 	return values
 
-def generate_output(nodes, fh, fp):
+def generate_output(nodes, parser, fp):
 	"""Output parsed file to the file path @fp.
 
 	"""
-	f = open(fp, 'a+')
 
-	for line in fh:
+	for cdm_record in parser:
 		if input_format == 'avro':
 			raise NotImplementedError('CDM avro format is not supported as of 01-04-09.')
 		elif input_format == 'json':
-			cdm_record = json.loads(line.strip())
 			cdm_record_type = cdm_record['datum'].keys()[0]
 			cdm_record_value = cdm_record['datum'][cdm_record_type]
 
@@ -1273,9 +1271,9 @@ def generate_output(nodes, fh, fp):
 			# to make sure we don't see two edges with the same UUIDs
 			
 			uuid = cdm_record_value['uuid']
-			if uuid in edgeUUID:
-				logging.debug('CDM_TYPE_EVENT: UUID is not unique. UUID: ' + repr(uuid))
-			edgeUUID.add(uuid)
+			# if uuid in edgeUUID:
+			#	logging.debug('CDM_TYPE_EVENT: UUID is not unique. UUID: ' + repr(uuid))
+			# edgeUUID.add(uuid)
 
 			values = process_cdm_event(cdm_record_value, input_format)
 
@@ -1318,7 +1316,7 @@ nodes = SqliteDict('./' + system + '-nodes.sqlite', autocommit=True)
 # nodes = dict()
 
 # for debugging: make sure no two edges have the same UUIDs
-edgeUUID = set()
+# edgeUUID = set()
 
 if input_format == 'avro':
 	raise NotImplementedError('CDM avro format is not supported as of 01-04-09.')
@@ -1330,123 +1328,123 @@ for data_file in files:
 	with tf.open(os.path.join(input_source, data_file), 'r:gz') as f:
 		names = f.getnames()
 		sorted_files = sorted(names, key=lambda item: (int(item.split('.')[-1]) if item[-1].isdigit() else int(0), item))
-		print sorted_files
-		exit()
 
-		parser = ijson.common.items(ijson.parse(f, multiple_values=True), '')
-		for cdm_record in parser:
-			if input_format == 'avro':
-				raise ValueError('This is a streaming JSON parser implementation.')
-			elif input_format == 'json':
-				# cdm_record = json.loads(line.strip())
-				cdm_record_type = cdm_record['datum'].keys()[0]
-				cdm_record_value = cdm_record['datum'][cdm_record_type]
+		for sorted_file in sorted_files:
+			file_obj = f.extractfile(f.getmember(sorted_file))
+			parser = ijson.common.items(ijson.parse(file_obj, multiple_values=True), '')
+			for cdm_record in parser:
+				if input_format == 'avro':
+					raise ValueError('This is a streaming JSON parser implementation.')
+				elif input_format == 'json':
+					# cdm_record = json.loads(line.strip())
+					cdm_record_type = cdm_record['datum'].keys()[0]
+					cdm_record_value = cdm_record['datum'][cdm_record_type]
 				
-			if cdm_record_type == CDM_TYPE_SRCSINK:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_srcsink(cdm_record_value, input_format, next_id)
+				if cdm_record_type == CDM_TYPE_SRCSINK:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_srcsink(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_SRCSINK: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_SRCSINK: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-			elif cdm_record_type == CDM_TYPE_SUBJECT:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_subject(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_SUBJECT:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_subject(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_SUBJECT: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_SUBJECT: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-			elif cdm_record_type == CDM_TYPE_FILE:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_file(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_FILE:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_file(cdm_record_value, input_format, next_id)
 				
-				if uuid in nodes:
-					# clearscope contain identical records
-					# check if the original UUIDs are the same
-					node = nodes[uuid]
-					nodeUUID = node['uuid']
-					if nodeUUID == cdm_record_value['uuid']:
-						continue	# if simply because identical records, we just drop the record
-					else:	# if collision occurs
-						logging.debug('CDM_TYPE_FILE: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						# clearscope contain identical records
+						# check if the original UUIDs are the same
+						node = nodes[uuid]
+						nodeUUID = node['uuid']
+						if nodeUUID == cdm_record_value['uuid']:
+							continue	# if simply because identical records, we just drop the record
+						else:	# if collision occurs
+							logging.debug('CDM_TYPE_FILE: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-			elif cdm_record_type == CDM_TYPE_SOCK:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_sock(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_SOCK:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_sock(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_SOCK: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_SOCK: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-			elif cdm_record_type == CDM_TYPE_PIPE:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_pipe(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_PIPE:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_pipe(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_PIPE: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_PIPE: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-				# TODO:
-				# Do we consider PIPE an edge or a vertex?
+					# TODO:
+					# Do we consider PIPE an edge or a vertex?
 
-			elif cdm_record_type == CDM_TYPE_EVENT:
-				pass
+				elif cdm_record_type == CDM_TYPE_EVENT:
+					pass
 
-			elif cdm_record_type == CDM_TYPE_PRINCIPAL:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_principal(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_PRINCIPAL:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_principal(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_PRINCIPAL: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
-			# clearscope
-			elif cdm_record_type == CDM_TYPE_TAG:
-				pass
-			# fivedirections
-			elif cdm_record_type == CDM_TYPE_STARTMARKER:
-				pass
-			elif cdm_record_type == CDM_TYPE_TIMEMARKER:
-				pass
-			elif cdm_record_type == CDM_TYPE_HOST:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_host(cdm_record_value, input_format, next_id)
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_PRINCIPAL: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
+				# clearscope
+				elif cdm_record_type == CDM_TYPE_TAG:
+					pass
+				# fivedirections
+				elif cdm_record_type == CDM_TYPE_STARTMARKER:
+					pass
+				elif cdm_record_type == CDM_TYPE_TIMEMARKER:
+					pass
+				elif cdm_record_type == CDM_TYPE_HOST:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_host(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_HOST: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_HOST: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
 
-			elif cdm_record_type == CDM_TYPE_KEY:
-				pass
-			elif cdm_record_type == CDM_TYPE_MEMORY:
-				uuid = cdm_record_value['uuid']
-				values = process_cdm_memory(cdm_record_value, input_format, next_id)
+				elif cdm_record_type == CDM_TYPE_KEY:
+					pass
+				elif cdm_record_type == CDM_TYPE_MEMORY:
+					uuid = cdm_record_value['uuid']
+					values = process_cdm_memory(cdm_record_value, input_format, next_id)
 
-				if uuid in nodes:
-					logging.debug('CDM_TYPE_MEMORY: UUID is not unique. UUID: ' + repr(uuid))
-				nodes[uuid] = values
-				next_id += 1
-			elif cdm_record_type == CDM_TYPE_ENDMARKER:
-				pass
-			# trace
-			elif cdm_record_type == CDM_TYPE_UNITDEPENDENCY:
-				# TODO
-				# Do we consider this record a type of edge? If so, we should not pass.
-				pass
-			else:
-				print(cdm_record)
-				raise KeyError('CDM record type is undefined.')
+					if uuid in nodes:
+						logging.debug('CDM_TYPE_MEMORY: UUID is not unique. UUID: ' + repr(uuid))
+					nodes[uuid] = values
+					next_id += 1
+				elif cdm_record_type == CDM_TYPE_ENDMARKER:
+					pass
+				# trace
+				elif cdm_record_type == CDM_TYPE_UNITDEPENDENCY:
+					# TODO
+					# Do we consider this record a type of edge? If so, we should not pass.
+					pass
+				else:
+					print(cdm_record)
+					raise KeyError('CDM record type is undefined.')
 
-	f.close()
+		f.close()
 
 # go through the files again to output edge lists
 if system == 'cadets':
@@ -1480,26 +1478,36 @@ elif system == 'clearscope':
 			generate_output(nodes, fh, out_first)
 		fh.close()
 elif system == 'theia':
-	first = ['theia-e3-1-0.json', 'theia-e3-1-1.json', 'theia-e3-1-2.json', 'theia-e3-1-3.json', 'theia-e3-1-4.json', 'theia-e3-1-5.json', 'theia-e3-1-6.json', 'theia-e3-1-7.json', 'theia-e3-1-8.json', 'theia-e3-1-9.json']
-	second = ['theia-e3-3-0.json']
-	third = ['theia-e3-5-0.json']
+	# first = ['theia-e3-1-0.json', 'theia-e3-1-1.json', 'theia-e3-1-2.json', 'theia-e3-1-3.json', 'theia-e3-1-4.json', 'theia-e3-1-5.json', 'theia-e3-1-6.json', 'theia-e3-1-7.json', 'theia-e3-1-8.json', 'theia-e3-1-9.json']
+	# second = ['theia-e3-3-0.json']
+	# third = ['theia-e3-5-0.json']
 
-	out_first = '0-' + output_locat
-	out_second = '1-' + output_locat
+	# out_first = '0-' + output_locat
+	# out_second = '1-' + output_locat
 	out_third = '2-' + output_locat
 
-	for data_file in first:
-		with open(os.path.join(input_source, data_file), 'r') as fh:
-			generate_output(nodes, fh, out_first)
-		fh.close()
-	for data_file in second:
-		with open(os.path.join(input_source, data_file), 'r') as fh:
-			generate_output(nodes, fh, out_second)
-		fh.close()
-	for data_file in third:
-		with open(os.path.join(input_source, data_file), 'r') as fh:
-			generate_output(nodes, fh, out_third)
-		fh.close()
+#	for data_file in first:
+#		with open(os.path.join(input_source, data_file), 'r') as fh:
+#			generate_output(nodes, fh, out_first)
+#		fh.close()
+#	for data_file in second:
+#		with open(os.path.join(input_source, data_file), 'r') as fh:
+#			generate_output(nodes, fh, out_second)
+#		fh.close()
+#	for data_file in third:
+#		with open(os.path.join(input_source, data_file), 'r') as fh:
+#			generate_output(nodes, fh, out_third)
+#		fh.close()
+	for data_file in files:
+		with tf.open(os.path.join(input_source, data_file), 'r:gz') as f:
+			names = f.getnames()
+			sorted_files = sorted(names, key=lambda item: (int(item.split('.')[-1]) if item[-1].isdigit() else int(0), item))
+
+			for sorted_file in sorted_files:
+				file_obj = f.extractfile(f.getmember(sorted_file))
+				parser = ijson.common.items(ijson.parse(file_obj, multiple_values=True), '')
+				generate_output(nodes, parser, out_third)
+
 elif system == 'fivedirections':
 	third = ['fivedirections-e3-3.json']
 
