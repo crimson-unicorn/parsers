@@ -28,9 +28,55 @@ Note:
 We must parse all segmented datasets together so that we (hopefully) will not have any unmatched subject/object `UUID`s.
 To do so, we may employ a key-value database (if there is a space constraint). 
 We tried to use Python’s `sqlite3` database, but the performance is disappointing.
+We are currently trying RocksDB. Installation instructions are in the next section.
+
+To parse CDM JSON in a streaming fashion, use `ijson`.
+We use a series of other existing Python packages hoping to improve the performance, including native Python packages such as multiprocessing
 
 ### Installation
+
+####macOS
 pip install -U sqlitedict
+
+Installing some JSON libraries for parsing:
+```
+brew install yajl
+git clone https://github.com/isagalaev/ijson.git
+cd ijson/
+pip install .
+```
+Installing a fast hashing library:
+```
+pip install xxhash
+```
+Installing a profiling library for performance evaluation:
+```
+pip install yappi 
+```
+Installing RocksDB and its Python bindings:
+```
+brew install rocksdb
+pip install python-rocksd
+```
+To display progress
+```
+pip install progressbar2
+```
+
+####Ubuntu Linux
+Installing YAJL is different on Ubuntu:
+```
+agt-get install yajl2
+```
+Installing RocksDB is different:
+```
+git clone https://github.com/facebook/rocksdb.git
+cd rocksdb
+mkdir build && cd build
+cmake ..
+make
+make install INSTALL_PATH=/usr
+```
 
 ## Issues
 ### Cadets

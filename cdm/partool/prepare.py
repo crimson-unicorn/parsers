@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from __future__ import print_function
+import rocksdb
 
 # CDM record type constants
 CDM_TYPE_EVENT = 'com.bbn.tc.schema.avro.cdm18.Event'
@@ -20,3 +22,26 @@ CDM_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm18.UnitDependency'
 # CDM UUID constant
 # CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
 CDM_UUID = 'UUID'
+
+def initdb(fn):
+	"""Initialize a database with a given name
+
+	Arguments:
+	fn - name of the database
+	"""
+	# create database
+	opts = rocksdb.Options()
+	opts.create_if_missing = True
+	opts.max_open_files = 300000
+	opts.write_buffer_size = 67108864
+	opts.max_write_buffer_number = 3
+	opts.target_file_size_base = 67108864
+
+	opts.table_factory = rocksdb.BlockBasedTableFactory(
+		filter_policy=rocksdb.BloomFilterPolicy(10),
+		block_cache=rocksdb.LRUCache(2 * (1024 ** 3)),
+		block_cache_compressed=rocksdb.LRUCache(500 * (1024 ** 2)))
+
+	db = rocksdb.DB(fn + '.db', opts)
+	print("\x1b[6;30;42m[+]\x1b[0m setting up database {}.db in current directory...".format(fn))
+	return db
