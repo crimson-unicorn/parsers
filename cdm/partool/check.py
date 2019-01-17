@@ -1,6 +1,6 @@
 #!/usr/bin/python
 from __future__ import print_function
-from constants import *
+from prepare import *
 
 def sanitycheckcf(parser, logfile):
 	"""Sanity checks the following items from CamFlow trace data.
