@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
-import os, sys, argparse, hashlib
+import os, sys, argparse
 import tarfile as tf
 import ijson.backends.yajl2_cffi as ijson
 import partool.misc as ptm
@@ -145,93 +145,93 @@ if __name__ == "__main__":
 	global args
 	args = parser.parse_args()
 
-	# if args.scan:
-	# 	print("\x1b[6;30;42m[+]\x1b[0m creating sanity.log in current directory...")
-	# 	sanitylog = open('sanity.log', 'a+')
-	# else:
-	# 	print("\x1b[6;30;42m[+]\x1b[0m initiating parser...")
-	# 	# create process pool
-	# 	procs = list()
-	# 	nprocs = mp.cpu_count()
+	if args.scan:
+		print("\x1b[6;30;42m[+]\x1b[0m creating sanity.log in current directory...")
+		sanitylog = open('sanity.log', 'a+')
+	else:
+		print("\x1b[6;30;42m[+]\x1b[0m initiating parser...")
+		# create process pool
+		procs = list()
+		nprocs = mp.cpu_count()
 	
-	# if args.compact:
-	# 	# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
-	# 	if args.verbose:
-	# 		print("\x1b[6;30;43m[i]\x1b[0m no support for multiprocessing in compact files at the moment")
-	# 		print("\x1b[6;30;42m[+]\x1b[0m processing compressed JSON tar file in directory {}...".format(args.input))
+	if args.compact:
+		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
+		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m no support for multiprocessing in compact files at the moment")
+			print("\x1b[6;30;42m[+]\x1b[0m processing compressed JSON tar file in directory {}...".format(args.input))
 
-	# 	fns = os.listdir(args.input)
-	# 	# For compressed JSON tar file,
-	# 	# we only process one tar file at a time.
-	# 	if len(fns) != 1:
-	# 		raise ValueError("{} directory must contain one and only one tar file".format(args.input))
+		fns = os.listdir(args.input)
+		# For compressed JSON tar file,
+		# we only process one tar file at a time.
+		if len(fns) != 1:
+			raise ValueError("{} directory must contain one and only one tar file".format(args.input))
 
-	# 	if not args.scan:
-	# 		db = initdb(fns[0])
+		if not args.scan:
+			db = initdb(fns[0])
 
-	# 	if args.profile:
-	# 		if args.verbose:
-	# 			print("\x1b[6;30;43m[i]\x1b[0m profiling is on...")
-	# 		yappi.clear_stats()
-	# 		yappi.set_clock_type('cpu')
-	# 		yappi.start(builtins=True)
+		if args.profile:
+			if args.verbose:
+				print("\x1b[6;30;43m[i]\x1b[0m profiling is on...")
+			yappi.clear_stats()
+			yappi.set_clock_type('cpu')
+			yappi.start(builtins=True)
 
-	# 	with tf.open(os.path.join(args.input, fns[0]), 'r:gz') as gzf:
-	# 		filenames = gzf.getnames()
-	# 		sortedfilenames = ptm.sortfilenames(filenames)
+		with tf.open(os.path.join(args.input, fns[0]), 'r:gz') as gzf:
+			filenames = gzf.getnames()
+			sortedfilenames = ptm.sortfilenames(filenames)
 
-	# 		for sfn in sortedfilenames:
-	# 			fileobj = gzf.extractfile(gzf.getmember(sfn))
-	# 			if args.scan:
-	# 				if args.verbose:
-	# 					print("\x1b[6;30;42m[+]\x1b[0m start scanning compressed JSON gzip file {}...".format(sfn))
-	# 				cprocess(fileobj, sanitylog, sfn)
-	# 			else:
-	# 				if args.verbose:
-	# 					print("\x1b[6;30;42m[+]\x1b[0m start sequentially processing compressed JSON gzip file {}...".format(sfn))
-	# 				cprocess(fileobj, db, sfn)
+			for sfn in sortedfilenames:
+				fileobj = gzf.extractfile(gzf.getmember(sfn))
+				if args.scan:
+					if args.verbose:
+						print("\x1b[6;30;42m[+]\x1b[0m start scanning compressed JSON gzip file {}...".format(sfn))
+					cprocess(fileobj, sanitylog, sfn)
+				else:
+					if args.verbose:
+						print("\x1b[6;30;42m[+]\x1b[0m start sequentially processing compressed JSON gzip file {}...".format(sfn))
+					cprocess(fileobj, db, sfn)
 
-	# 	if args.profile:
-	# 		yappi.stop()
-	# 		if args.verbose:
-	# 			print("\x1b[6;30;43m[i]\x1b[0m profiling is done...")
-	# 		yappi.get_func_stats().print_all()
-	# 		yappi.get_thread_stats().print_all()
+		if args.profile:
+			yappi.stop()
+			if args.verbose:
+				print("\x1b[6;30;43m[i]\x1b[0m profiling is done...")
+			yappi.get_func_stats().print_all()
+			yappi.get_thread_stats().print_all()
 
-	# 	gzf.close()
+		gzf.close()
 
-	# else:
-	# 	if args.verbose:
-	# 		print("\x1b[6;30;43m[i]\x1b[0m multiprocessing support is on for processing but not scanning")
-	# 		print("\x1b[6;30;42m[+]\x1b[0m processing regular JSON files in directory {}...".format(args.input))
+	else:
+		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m multiprocessing support is on for processing but not scanning")
+			print("\x1b[6;30;42m[+]\x1b[0m processing regular JSON files in directory {}...".format(args.input))
 
-	# 	fns = os.listdir(args.input)
-	# 	sortedfilenames = ptm.sortfilenames(fns)
+		fns = os.listdir(args.input)
+		sortedfilenames = ptm.sortfilenames(fns)
 
-	# 	if args.scan:
-	# 		for sfn in sortedfilenames: 
-	# 			if args.verbose:
-	# 				print("\x1b[6;30;42m[+]\x1b[0m start scanning regular JSON gzip file {}...".format(sfn))
-	# 			fileobj = open(os.path.join(args.input, sfn), 'r')
-	# 			cprocess(fileobj, sanitylog, sfn)
-	# 	else:
-	# 		if args.verbose:
-	# 			print("\x1b[6;30;43m[i]\x1b[0m multiprocesses processing regular JSON files")
-	# 		for i in range(len(sortedfilenames)):
-	# 			p = mp.Process(target=process, \
-	# 							args=(sortedfilenames[i],))
-	# 			procs.append(p)
-	# 			p.start()
+		if args.scan:
+			for sfn in sortedfilenames: 
+				if args.verbose:
+					print("\x1b[6;30;42m[+]\x1b[0m start scanning regular JSON gzip file {}...".format(sfn))
+				fileobj = open(os.path.join(args.input, sfn), 'r')
+				cprocess(fileobj, sanitylog, sfn)
+		else:
+			if args.verbose:
+				print("\x1b[6;30;43m[i]\x1b[0m multiprocesses processing regular JSON files")
+			for i in range(len(sortedfilenames)):
+				p = mp.Process(target=process, \
+								args=(sortedfilenames[i],))
+				procs.append(p)
+				p.start()
 
-	# 		for p in procs:
-	# 			p.join()
+			for p in procs:
+				p.join()
 
-	# if args.scan:
-	# 	sanitylog.close()
-	# 	print("\x1b[6;30;42m[+]\x1b[0m sanity checking is done")
-	# 	print("\x1b[6;30;43m[i]\x1b[0m check sanity.log in the current directory for results")
-	# else:
-	# 	print("\x1b[6;30;42m[+]\x1b[0m node parsing is done")
+	if args.scan:
+		sanitylog.close()
+		print("\x1b[6;30;42m[+]\x1b[0m sanity checking is done")
+		print("\x1b[6;30;43m[i]\x1b[0m check sanity.log in the current directory for results")
+	else:
+		print("\x1b[6;30;42m[+]\x1b[0m node parsing is done")
 
 #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#

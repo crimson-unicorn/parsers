@@ -1,0 +1,1 @@
+https://github.com/isagalaev/ijson/tarball/e252a50#egg=ijson-2.4

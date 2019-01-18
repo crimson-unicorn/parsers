@@ -1,0 +1,6 @@
+ijson
+cffi
+xxhash
+yappi
+python-rocksdb
+tqdm
