@@ -3,14 +3,14 @@ from prepare import *
 from misc import hashgen
 import logging
 import time
-import progressbar
+import tqdm
 
-def parsecf(parser, ds):
+def parsecf(parser, ds, desc):
 	"""Parse CamFlow trace data.
 	"""
 	raise NotImplementedError("currently we cannot parse CamFlow data in this module")
 
-def parsedp(parser, ds):
+def parsedp(parser, ds, desc):
 	"""Parse DARPA trace data.
 	We store non-Event data (i.e., node) in a database.
 	The database is a key-value store where:
@@ -20,11 +20,17 @@ def parsedp(parser, ds):
 	Arguments:
 	parser - ijson parser that feeds JSON objects
 	db - database
+	desc - description of the process
 	"""
-	bar = progressbar.ProgressBar(max_value=progressbar.UnknownLength)
-	for i, cdmrec in enumerate(parser):
-		if i % 5000 == 0:
-			bar.update(i)
+	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)
+	procnum = 0
+	if desc.split('.')[-1].isdigit():
+		procnum = int(desc.split('.')[-1])
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=procnum)
+
+	for cdmrec in parser:
+		pb.update()
+
 		cdmrectype = cdmrec['datum'].keys()[0]
 		cdmrecval = cdmrec['datum'][cdmrectype]
 
@@ -35,6 +41,7 @@ def parsedp(parser, ds):
 			cdmkey = cdmrecval['uuid']
 			cdmval = str(valgendp(cdmrectype, cdmrecval))
 			ds.put(cdmkey, cdmval)
+	pb.close()
 
 def gencf(parser, out):
 	"""Generate CamFlow outputs.

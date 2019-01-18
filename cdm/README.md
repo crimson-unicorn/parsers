@@ -60,7 +60,7 @@ pip install python-rocksd
 ```
 To display progress
 ```
-pip install progressbar2
+pip install tqdm
 ```
 
 ####Ubuntu Linux
