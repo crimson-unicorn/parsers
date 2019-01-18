@@ -9,16 +9,14 @@ import partool.jparse as ptj
 from partool.prepare import *
 import multiprocessing as mp
 import yappi
-import dill
-import pickle
-import itertools
 
-def cprocess(fileobj, ds):
+def cprocess(fileobj, ds, fn):
 	"""Iteratively process/scan an file object.
 
 	Arguments:
 	fileobj - file object
 	ds - a database (for node parsing) or a sanitylog (for scanning)
+	fn - file name
 	"""
 	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
@@ -31,7 +29,7 @@ def cprocess(fileobj, ds):
 		else:
 			if args.verbose:
 				print("\x1b[6;30;42m[+]\x1b[0m parsing compressed file in CAMFLOW mode...")
-			ptj.parsecf(parser, ds)
+			ptj.parsecf(parser, ds, fn)
 
 	elif args.trace == 'darpa':
 		if args.scan:
@@ -42,7 +40,7 @@ def cprocess(fileobj, ds):
 		else:
 			if args.verbose:
 				print("\x1b[6;30;42m[+]\x1b[0m parsing compressed file in DARPA mode...")
-			ptj.parsedp(parser, ds)
+			ptj.parsedp(parser, ds, fn)
 
 	else:
 		raise NotImplementedError("cannot run traces from an unknown system")
@@ -67,6 +65,7 @@ def process(fn, out=None):
 			yappi.start(builtins=True)
 
 	db = initdb(fn)
+
 	with open(os.path.join(args.input, fn), 'r') as fileobj:
 		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
@@ -74,7 +73,7 @@ def process(fn, out=None):
 			if out == None:
 				if args.verbose:
 					print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CAMFLOW mode...".format(fn))
-				ptj.parsecf(parser, db)
+				ptj.parsecf(parser, db, fn)
 
 			else:
 				if args.verbose:
@@ -86,7 +85,7 @@ def process(fn, out=None):
 			if out == None:
 				if args.verbose:
 					print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in DARPA mode...".format(fn))
-				ptj.parsedp(parser, db)
+				ptj.parsedp(parser, db, fn)
 
 			else:
 				if args.verbose:
@@ -157,11 +156,11 @@ if __name__ == "__main__":
 				if args.scan:
 					if args.verbose:
 						print("\x1b[6;30;42m[+]\x1b[0m start scanning compressed JSON gzip file {}...".format(sfn))
-					cprocess(fileobj, sanitylog)
+					cprocess(fileobj, sanitylog, sfn)
 				else:
 					if args.verbose:
 						print("\x1b[6;30;42m[+]\x1b[0m start sequentially processing compressed JSON gzip file {}...".format(sfn))
-					cprocess(fileobj, db)
+					cprocess(fileobj, db, sfn)
 
 		if args.profile:
 			yappi.stop()
@@ -185,7 +184,7 @@ if __name__ == "__main__":
 				if args.verbose:
 					print("\x1b[6;30;42m[+]\x1b[0m start scanning regular JSON gzip file {}...".format(sfn))
 				fileobj = open(os.path.join(args.input, sfn), 'r')
-				cprocess(fileobj, sanitylog)
+				cprocess(fileobj, sanitylog, sfn)
 		else:
 			if args.verbose:
 				print("\x1b[6;30;43m[i]\x1b[0m multiprocesses processing regular JSON files")
@@ -207,10 +206,10 @@ if __name__ == "__main__":
 
 #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 
-	# print "parsing files again sequentially to output final results at {}".format(args.output)
-	# if args.verbose:
-	# 	print "opening output file {} for writing...".format(args.output)
-	# ofile = open(args.output, os.O_WRONLY | os.O_APPEND | os.O_CREAT)
+	print "parsing files again sequentially to output final results at {}".format(args.output)
+	if args.verbose:
+		print "opening output file {} for writing...".format(args.output)
+	ofile = open(args.output, 'os.O_WRONLY | os.O_APPEND | os.O_CREAT')
 
 	# if args.compact:
 	# 	if args.verbose:
