@@ -1,0 +1,17 @@
+Metadata-Version: 2.1
+Name: provparser
+Version: 0.0.1
+Summary: Parse audit provenance data from CDM and CamFlow.
+Home-page: https://github.com/crimson-unicorn/parsers/tree/master/cdm
+Author: Xueyuan Michael Han
+Author-email: hanx@g.harvard.edu
+License: UNKNOWN
+Description: UNKNOWN
+Platform: UNKNOWN
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU General Public License (GPL)
+Classifier: Natural Language :: English
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown

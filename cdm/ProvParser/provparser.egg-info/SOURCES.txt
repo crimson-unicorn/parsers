@@ -1,0 +1,17 @@
+CHANGES.txt
+LICENSE.txt
+MANIFEST.in
+README.md
+setup.py
+provparser/__init__.py
+provparser/pp.py
+provparser.egg-info/PKG-INFO
+provparser.egg-info/SOURCES.txt
+provparser.egg-info/dependency_links.txt
+provparser.egg-info/requires.txt
+provparser.egg-info/top_level.txt
+provparser/partool/__init__.py
+provparser/partool/check.py
+provparser/partool/jparse.py
+provparser/partool/misc.py
+provparser/partool/prepare.py
