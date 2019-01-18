@@ -11,7 +11,7 @@ setuptools.setup(
     description="Parse audit provenance data from CDM and CamFlow.",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/crimson-unicorn/parsers/tree/master/cdm",
+    url="https://github.com/crimson-unicorn/parsers/tree/master/cdm/ProvParser",
     install_requires=[
         'ijson',
         'cffi',
