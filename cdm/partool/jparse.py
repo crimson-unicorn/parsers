@@ -19,7 +19,7 @@ def parsedp(parser, ds, desc):
 
 	Arguments:
 	parser - ijson parser that feeds JSON objects
-	db - database
+	ds - database system
 	desc - description of the process
 	"""
 	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)
@@ -43,16 +43,22 @@ def parsedp(parser, ds, desc):
 			ds.put(cdmkey, cdmval)
 	pb.close()
 
-def gencf(parser, out):
-	"""Generate CamFlow outputs.
+def cgencf(parser, db, out):
+	"""Generate CamFlow outputs from compressed file.
 	"""
 	raise NotImplementedError("currently we cannot generate CamFlow output data in this module")
 
-def gendp(parser, out):
-	"""Generate DARPA outputs.
+def gencf(parser, i, dbs, ofile):
+	"""Generate CamFlow outputs using a list of databases.
+	"""
+	raise NotImplementedError("currently we cannot generate CamFlow output data in this module")
+
+def cgendp(parser, db, out):
+	"""Generate DARPA outputs from compressed file.
 
 	Arguments:
 	parser - ijson parser that feeds JSON objects
+	db - database
 	out - output file object
 	"""
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
@@ -74,102 +80,197 @@ def gendp(parser, out):
 			else:
 				timestamp = cdmrecval['timestampNanos']
 
-			srcUUID = None
-			dstUUID = None
-			bidirection = False
-			# edges: Subject -> Object
-			if edgetype == 'EVENT_CLOSE' or \
-				edgetype == 'EVENT_CREATE_OBJECT' or \
-				edgetype == 'EVENT_FORK' or \
-				edgetype == 'EVENT_OPEN' or \
-				edgetype == 'EVENT_LSEEK' or \
-				edgetype == 'EVENT_CHANGE_PRINCIPAL' or \
-				edgetype == 'EVENT_LOGIN' or \
-				edgetype == 'EVENT_MODIFY_PROCESS' or \
-				edgetype == 'EVENT_EXECUTE' or \
-				edgetype == 'EVENT_CONNECT' or \
-				edgetype == 'EVENT_SENDTO' or \
-				edgetype == 'EVENT_WRITE' or \
-				edgetype == 'EVENT_MODIFY_FILE_ATTRIBUTES' or \
-				edgetype == 'EVENT_TRUNCATE' or \
-				edgetype == 'EVENT_UNLINK' or \
-				edgetype == 'EVENT_SIGNAL' or \
-				edgetype == 'EVENT_MPROTECT' or \
-				edgetype == 'EVENT_SENDMSG' or \
-				edgetype == 'EVENT_BIND' or \
-				edgetype == 'EVENT_WRITE_SOCKET_PARAMS' or \
-				edgetype == 'EVENT_CREATE_THREAD' or \
-				edgetype == 'EVENT_LOGOUT' or \
-				edgetype == 'EVENT_CLONE' or \
-				edgetype == 'EVENT_UNIT' or \
-				edgetype == 'EVENT_LOGCLEAR' or \
-				edgetype == 'EVENT_MOUNT' or \
-				edgetype == 'EVENT_SERVICEINSTALL' or \
-				edgetype == 'EVENT_STARTSERVICE' or \
-				edgetype == 'EVENT_UMOUNT':
-				(srcUUID, dstUUID) = subobjrel(cdmrecval)
-			# edges: Subject <-> Object
-			elif edgetype == 'EVENT_FCNTL' or \
-					edgetype == 'EVENT_MMAP' or \
-					edgetype == 'EVENT_OTHER':
-				(srcUUID, dstUUID) = subobjrel(cdmrecval)
-				bidirection = True
-			# edges: Object -> Subject
-			elif edgetype == 'EVENT_ACCEPT' or \
-					edgetype == 'EVENT_READ' or \
-					edgetype == 'EVENT_RECVFROM' or \
-					edgetype == 'EVENT_RECVMSG' or \
-					edgetype == 'EVENT_CHECK_FILE_ATTRIBUTES' or \
-					edgetype == 'EVENT_READ_SOCKET_PARAMS' or \
-					edgetype == 'EVENT_LOADLIBRARY' or \
-					edgetype == 'EVENT_WAIT':
-				(dstUUID, srcUUID) = subobjrel(cdmrecval) 
-			# edges: Object1 -> Object2
-			elif edgetype == 'EVENT_ADD_OBJECT_ATTRIBUTE' or \
-					edgetype == 'EVENT_LINK' or \
-					edgetype == 'EVENT_RENAME' or \
-					edgetype == 'EVENT_FLOWS_TO' or \
-					edgetype == 'EVENT_UPDATE' or \
-					edgetype == 'EVENT_SHM' or \
-					edgetype == 'EVENT_CORRELATION':
-				(srcUUID, dstUUID) = objobjrel(cdmrecval)
-			# edges non-directional
-			elif edgetype == 'EVENT_EXIT' or \
-					edgetype == 'EVENT_DUP' or \
-					edgetype == 'EVENT_BOOT' or \
-					edgetype == 'EVENT_BLIND':
-				pass
-			else:
-				logging.error('CDM_TYPE_EVENT: event type is unexpected. Event UUID: ' + repr(cdmrecval['uuid']))
+			srcUUID, dstUUID, bidirection = processevent(cdmrecval)
 
 			if srcUUID == None or dstUUID == None:
 				continue
 
 			srcVal = db.get(srcUUID)
 			if srcVal == None:
-				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + edgetype)
+				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
 			dstVal = db.get(dstUUID)
 			if dstVal == None:
-				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + edgetype)
+				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
 			out.write(str(hashgen([srcUUID])) + '\t' \
 					+ str(hashgen([dstUUID])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
-					+ ':' + str(hashgen([edgetype])) \
+					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
 				out.write(str(hashgen([dstUUID])) + '\t' \
 					+ str(hashgen([srcUUID])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
-					+ ':' + str(hashgen([edgetype])) \
+					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 		else:
 			pass
 	return
+
+def gendp(parser, i, dbs, out):
+	"""Generate DARPA outputs using a list of databases.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	i - the start index of the database list
+	dbs - a list of database
+	out - output file object
+	"""
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+	for cdmrec in parser:
+		pb.update()
+		cdmrectype = cdmrec['datum'].keys()[0]
+		cdmrecval = cdmrec['datum'][cdmrectype]
+
+		if cdmrectype == CDM_TYPE_EVENT:
+			if 'type' not in cdmrecval:
+				logging.debug('CDM_TYPE_EVENT: type is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				edgetype = valgendp(cdmrectype, cdmrecval)
+
+			if 'timestampNanos' not in cdmrecval:
+				logging.debug('CDM_TYPE_EVENT: timestamp is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				timestamp = cdmrecval['timestampNanos']
+
+			srcUUID, dstUUID, bidirection = processevent(cdmrecval)
+
+			if srcUUID == None or dstUUID == None:
+				continue
+
+			srcVal = getfromdb(dbs, i, srcUUID)
+			if srcVal == None:
+				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			dstVal = getfromdb(dbs, i, dstUUID)
+			if dstVal == None:
+				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+			if bidirection:
+				out.write(str(hashgen([dstUUID])) + '\t' \
+					+ str(hashgen([srcUUID])) + '\t' \
+					+ str(dstVal) + ':' + str(srcVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+		else:
+			pass
+	pb.close()
+	return
+
+def getfromdb(dbs, i, uuid):
+	"""Wrapper function to get value from an uuid.
+
+	Arguments:
+	dbs - a list of databases
+	i - start index
+	uuid - key
+	"""
+	val = None
+	for ind in range(i, -1, -1):
+		val = dbs[ind].get(uuid)
+		if not val == None:
+			break
+	if val == None:
+		for ind in range(len(dbs)-1, i, -1):
+			val = dbs[ind].get(uuid)
+			if not val == None:
+				break
+	return val
+
+def processevent(cdmrecval):
+	"""Process an event based on its type.
+
+	Arguments:
+	cdmrecval - value of the event
+	"""
+	srcUUID = None
+	dstUUID = None
+	bidirection = False
+	edgetype = cdmrecval['type']
+	# edges: Subject -> Object
+	if edgetype == 'EVENT_CLOSE' or \
+		edgetype == 'EVENT_CREATE_OBJECT' or \
+		edgetype == 'EVENT_FORK' or \
+		edgetype == 'EVENT_OPEN' or \
+		edgetype == 'EVENT_LSEEK' or \
+		edgetype == 'EVENT_CHANGE_PRINCIPAL' or \
+		edgetype == 'EVENT_LOGIN' or \
+		edgetype == 'EVENT_MODIFY_PROCESS' or \
+		edgetype == 'EVENT_EXECUTE' or \
+		edgetype == 'EVENT_CONNECT' or \
+		edgetype == 'EVENT_SENDTO' or \
+		edgetype == 'EVENT_WRITE' or \
+		edgetype == 'EVENT_MODIFY_FILE_ATTRIBUTES' or \
+		edgetype == 'EVENT_TRUNCATE' or \
+		edgetype == 'EVENT_UNLINK' or \
+		edgetype == 'EVENT_SIGNAL' or \
+		edgetype == 'EVENT_MPROTECT' or \
+		edgetype == 'EVENT_SENDMSG' or \
+		edgetype == 'EVENT_BIND' or \
+		edgetype == 'EVENT_WRITE_SOCKET_PARAMS' or \
+		edgetype == 'EVENT_CREATE_THREAD' or \
+		edgetype == 'EVENT_LOGOUT' or \
+		edgetype == 'EVENT_CLONE' or \
+		edgetype == 'EVENT_UNIT' or \
+		edgetype == 'EVENT_LOGCLEAR' or \
+		edgetype == 'EVENT_MOUNT' or \
+		edgetype == 'EVENT_SERVICEINSTALL' or \
+		edgetype == 'EVENT_STARTSERVICE' or \
+		edgetype == 'EVENT_UMOUNT':
+		(srcUUID, dstUUID) = subobjrel(cdmrecval)
+	# edges: Subject <-> Object
+	elif edgetype == 'EVENT_FCNTL' or \
+			edgetype == 'EVENT_MMAP' or \
+			edgetype == 'EVENT_OTHER':
+		(srcUUID, dstUUID) = subobjrel(cdmrecval)
+		bidirection = True
+	# edges: Object -> Subject
+	elif edgetype == 'EVENT_ACCEPT' or \
+			edgetype == 'EVENT_READ' or \
+			edgetype == 'EVENT_RECVFROM' or \
+			edgetype == 'EVENT_RECVMSG' or \
+			edgetype == 'EVENT_CHECK_FILE_ATTRIBUTES' or \
+			edgetype == 'EVENT_READ_SOCKET_PARAMS' or \
+			edgetype == 'EVENT_LOADLIBRARY' or \
+			edgetype == 'EVENT_WAIT':
+		(dstUUID, srcUUID) = subobjrel(cdmrecval) 
+	# edges: Object1 -> Object2
+	elif edgetype == 'EVENT_ADD_OBJECT_ATTRIBUTE' or \
+			edgetype == 'EVENT_LINK' or \
+			edgetype == 'EVENT_RENAME' or \
+			edgetype == 'EVENT_FLOWS_TO' or \
+			edgetype == 'EVENT_UPDATE' or \
+			edgetype == 'EVENT_SHM' or \
+			edgetype == 'EVENT_CORRELATION':
+		(srcUUID, dstUUID) = objobjrel(cdmrecval)
+	# edges non-directional
+	elif edgetype == 'EVENT_EXIT' or \
+			edgetype == 'EVENT_DUP' or \
+			edgetype == 'EVENT_BOOT' or \
+			edgetype == 'EVENT_BLIND':
+		pass
+	else:
+		logging.error('CDM_TYPE_EVENT: event type is unexpected. Event UUID: ' + repr(cdmrecval['uuid']))
+
+	return srcUUID, dstUUID, bidirection
+
 
 def subobjrel(cdmrecval):
 	"""Relations between a Subject and an Object.
