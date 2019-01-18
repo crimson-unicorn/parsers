@@ -20,8 +20,8 @@ CDM_TYPE_ENDMARKER = 'com.bbn.tc.schema.avro.cdm18.EndMarker'
 CDM_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm18.UnitDependency'
 
 # CDM UUID constant
-# CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
-CDM_UUID = 'UUID'
+CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
+# CDM_UUID = 'UUID'
 
 def initdb(fn):
 	"""Initialize a database with a given name
