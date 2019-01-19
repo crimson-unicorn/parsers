@@ -104,15 +104,28 @@ def process(fn):
 	return
 
 
-def gprocess(fileobj, i, dbs, ofile):
+def gprocess(i, fns):
 	"""Iteratively parse the file object and generate the output
 
 	Arguments:
-	fileobj: file object
-	i: the start index of the db
-	dbs: a list of databases
-	ofile: output file object 
+	i: the index of the file to process
+	fns: a list of filenames
 	"""
+	dbs = list()
+	for fn in fns:
+		try:
+			db = rocksdb.DB(fn + '.db', rocksdb.Options(create_if_missing=False), read_only=True)
+			dbs.append(db)
+		except:
+			raise ValueError("Given DB: {}.db does not exist. Are you sure the name is correct?".format(sfn))
+	
+	fileobj = open(os.path.join(args.input, fns[i]), 'r')
+	
+	ofilename = args.trace + '-out.' + str(i) + '.txt'
+	if args.verbose:
+		print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))
+	ofile = open(ofilename, 'a+')
+
 	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 	if args.trace == 'camflow':
@@ -129,8 +142,8 @@ def gprocess(fileobj, i, dbs, ofile):
 		raise NotImplementedError("cannot run traces from an unknown system")
 
 	fileobj.close()
+	ofile.close()
 	return
-
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert JSON datasets to Unicorn edgelist datasets.')
@@ -141,7 +154,6 @@ if __name__ == "__main__":
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
 	parser.add_argument('-p', '--profile', help='profile the code for performance analysis', action='store_true')
-	parser.add_argument('-o', '--output', help='output data path', required=True)
 	global args
 	args = parser.parse_args()
 
@@ -236,13 +248,16 @@ if __name__ == "__main__":
 #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 #+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#+#
 
-	print("\x1b[6;30;42m[+]\x1b[0m parsing files again sequentially to output final results at {}".format(args.output))
-	if args.verbose:
-		print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(args.output))
-	ofile = open(args.output, 'a+')
+	print("\x1b[6;30;42m[+]\x1b[0m parsing files again to output final results.")
 
 	if args.compact:
+		ofilename = args.trace + '-out.txt'
 		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))
+		ofile = open(ofilename, 'a+')
+
+		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m no support for multiprocessing in compact files at the moment")
 			print("\x1b[6;30;42m[+]\x1b[0m processing compressed JSON tar file in directory {}...".format(args.input))
 
 		fns = os.listdir(args.input)
@@ -277,22 +292,26 @@ if __name__ == "__main__":
 			yappi.get_thread_stats().print_all()
 
 		gzf.close()
+		ofile.close()
 
 	else:
 		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m multiprocessing support is on...")
 			print("\x1b[6;30;42m[+]\x1b[0m processing regular JSON files in directory {}...".format(args.input))
 
 		fns = os.listdir(args.input)
 		sortedfilenames = ptm.sortfilenames(fns)
 
 		if len(sortedfilenames) > 1:
-			dbs = list()
-			for sfn in sortedfilenames:
-				try:
-					db = rocksdb.DB(sfn + '.db', rocksdb.Options(create_if_missing=False))
-					dbs.append(db)
-				except:
-					raise ValueError("Given DB: {}.db does not exist. Are you sure the name is correct?".format(sfn))
+			gprocs = list()
+
+		elif len(sortedfilenames) == 1:
+			ofilename = args.trace + '-out.txt'
+			if args.verbose:
+				print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))
+			ofile = open(ofilename, 'a+')
+		else:
+			raise ValueError("at least one file is needed as an input")
 
 		if args.profile:
 			if args.verbose:
@@ -311,12 +330,18 @@ if __name__ == "__main__":
 			if args.verbose:
 				print("\x1b[6;30;43m[i]\x1b[0m start parsing regular JSON file {} again and generating outputs...".format(sfn))
 			cprocess(fileobj, db, sortedfilenames[0], ofile)
+			ofile.close()
 		else:
-			for i,sfn in enumerate(sortedfilenames): 
-				fileobj = open(os.path.join(args.input, sfn), 'r')
-				if args.verbose:
-					print("\x1b[6;30;43m[i]\x1b[0m start parsing regular JSON file {} again and generating outputs...".format(sfn))
-				gprocess(fileobj, i, dbs, ofile)
+			if args.verbose:
+				print("\x1b[6;30;43m[i]\x1b[0m multiprocesses processing regular JSON files")
+			for i in range(len(sortedfilenames)):
+				gp = mp.Process(target=gprocess, \
+							args=(i, sortedfilenames,))
+				gprocs.append(gp)
+				gp.start()
+
+			for gp in gprocs:
+				gp.join()				
 
 		if args.profile:
 			yappi.stop()
@@ -325,6 +350,5 @@ if __name__ == "__main__":
 			stat = yappi.get_func_stats()
 			stat.save('gen.prof', type='callgrind')
 	
-	ofile.close()
 	print("\x1b[6;30;42m[+]\x1b[0m finished")
 

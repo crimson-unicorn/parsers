@@ -122,8 +122,8 @@ def gendp(parser, i, dbs, out):
 	"""
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
-	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
-	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output from File \x1b[6;30;42m{}\x1b[0m'.format(i)
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=i)
 	for cdmrec in parser:
 		pb.update()
 		cdmrectype = cdmrec['datum'].keys()[0]
