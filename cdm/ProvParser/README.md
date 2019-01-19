@@ -40,7 +40,7 @@ brew install rocksdb
 #### Ubuntu Linux
 
 ```
-agt-get install yajl2
+agt-get install libyajl2
 git clone https://github.com/facebook/rocksdb.git
 cd rocksdb
 mkdir build && cd build
