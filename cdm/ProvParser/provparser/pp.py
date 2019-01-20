@@ -24,7 +24,7 @@ def cprocess(fileobj, ds, fn, out=None):
 	if args.trace == 'camflow':
 		if args.scan:
 			if args.verbose:
-				print("\x1b[6;30;42m[+]\x1b[0m scanning compressed file {} in CAMFLOW mode...".format(fn))
+				print("\x1b[6;30;42m[+]\x1b[0m scanning file {} in CAMFLOW mode...".format(fn))
 			ptc.sanitycheckcf(parser, ds)
 
 		elif out == None:
@@ -42,7 +42,7 @@ def cprocess(fileobj, ds, fn, out=None):
 	elif args.trace == 'darpa':
 		if args.scan:
 			if args.verbose:
-				print("\x1b[6;30;42m[+]\x1b[0m scanning compressed file {} in DARPA mode...".format(fn))
+				print("\x1b[6;30;42m[+]\x1b[0m scanning file {} in DARPA mode...".format(fn))
 			ptc.sanitycheckdp(parser, ds)
 
 		elif out == None:
@@ -55,6 +55,21 @@ def cprocess(fileobj, ds, fn, out=None):
 				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in DARPA mode...".format(fn))
 				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
 			ptj.cgendp(parser, ds, out)
+
+	elif args.trace == 'cadets2':
+		if args.scan:
+			if args.verbose:
+				print("\x1b[6;30;42m[+]\x1b[0m scanning file {} in CADETS2 mode...".format(fn))
+			ptc.sanitycheckcd(parser, ds)
+
+		elif out == None:
+			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+
+		else:
+			if args.verbose:
+				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in CADETS2 mode...".format(fn))
+				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
+			ptj.cgencd(parser, ds, out)
 
 	else:
 		raise NotImplementedError("cannot run traces from an unknown system")
@@ -90,6 +105,11 @@ def process(fn):
 				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in DARPA mode...".format(fn))
 			ptj.parsedp(parser, db, fn)
 
+		elif args.trace == 'cadets2':
+			if args.verbose:
+				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2 mode...".format(fn))
+			ptj.parsecd(parser, db, fn)
+
 		else:
 			raise NotImplementedError("cannot run traces from an unknown system")
 
@@ -117,7 +137,7 @@ def gprocess(i, fns):
 			db = rocksdb.DB(fn + '.db', rocksdb.Options(create_if_missing=False), read_only=True)
 			dbs.append(db)
 		except:
-			raise ValueError("Given DB: {}.db does not exist. Are you sure the name is correct?".format(sfn))
+			raise ValueError("Given DB: {}.db does not exist. Are you sure the name is correct?".format(fn))
 	
 	fileobj = open(os.path.join(args.input, fns[i]), 'r')
 	
@@ -138,6 +158,11 @@ def gprocess(i, fns):
 			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in DARPA mode...".format(i))
 		ptj.gendp(parser, i, dbs, ofile)
 
+	elif args.trace == 'cadets2':
+		if args.verbose:
+			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2 mode...".format(i))
+		ptj.gencd(parser, i, dbs, ofile)
+
 	else:
 		raise NotImplementedError("cannot run traces from an unknown system")
 
@@ -149,7 +174,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert JSON datasets to Unicorn edgelist datasets.')
 	parser.add_argument('-v', '--verbose', action='store_true', help='increase console verbosity')
 	parser.add_argument('-t', '--trace', help='tracing system that generates the input', 
-		choices=['camflow', 'darpa'], required=True)
+		choices=['camflow', 'darpa', 'cadets2'], required=True)
 	parser.add_argument('-i', '--input', help='input data folder', required=True)
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
@@ -168,6 +193,10 @@ if __name__ == "__main__":
 	
 	if args.compact:
 		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
+		# CURRENTLY, NO SUPPORT FOR CADETS2 DATASETS
+		if args.trace == 'cadets2':
+			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+
 		if args.verbose:
 			print("\x1b[6;30;43m[i]\x1b[0m no support for multiprocessing in compact files at the moment")
 			print("\x1b[6;30;42m[+]\x1b[0m processing compressed JSON tar file in directory {}...".format(args.input))
@@ -223,7 +252,7 @@ if __name__ == "__main__":
 		if args.scan:
 			for sfn in sortedfilenames: 
 				if args.verbose:
-					print("\x1b[6;30;42m[+]\x1b[0m start scanning regular JSON gzip file {}...".format(sfn))
+					print("\x1b[6;30;42m[+]\x1b[0m start scanning regular JSON file {}...".format(sfn))
 				fileobj = open(os.path.join(args.input, sfn), 'r')
 				cprocess(fileobj, sanitylog, sfn)
 		else:
@@ -251,6 +280,9 @@ if __name__ == "__main__":
 	print("\x1b[6;30;42m[+]\x1b[0m parsing files again to output final results.")
 
 	if args.compact:
+		if args.trace == 'cadets2':
+			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+
 		ofilename = args.trace + '-out.txt'
 		if args.verbose:
 			print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))

@@ -77,6 +77,10 @@ cmake ..
 make
 make install INSTALL_PATH=/usr
 ```
+Check out performance profile using nice GUI
+```
+apt-get install kcachegrind
+```
 
 ## Issues
 ### Cadets
