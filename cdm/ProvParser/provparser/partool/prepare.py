@@ -21,7 +21,27 @@ CDM_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm18.UnitDependency'
 
 # CDM UUID constant
 CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
-# CDM_UUID = 'UUID'
+
+# Cadets-E2 record type constants
+CD2_TYPE_EVENT = 'Event'
+CD2_TYPE_FILE = 'FileObject'
+CD2_TYPE_SOCK = 'NetFlowObject'
+CD2_TYPE_SUBJECT = 'Subject'
+CD2_TYPE_SRCSINK = 'SrcSinkObject'
+CD2_TYPE_PIPE = 'UnnamedPipeObject'
+CD2_TYPE_PRINCIPAL = 'Principal'
+CD2_TYPE_TAG = 'ProvenanceTagNode'
+CD2_TYPE_STARTMARKER = 'StartMarker'
+CD2_TYPE_TIMEMARKER = 'TimeMarker'
+CD2_TYPE_HOST = 'Host'
+CD2_TYPE_KEY = 'RegistryKeyObject'
+CD2_TYPE_MEMORY = 'MemoryObject'
+CD2_TYPE_ENDMARKER = 'EndMarker'
+CD2_TYPE_UNITDEPENDENCY = 'UnitDependency'
+CD2_TYPE_IPC = 'IpcObject'
+
+# Cadets-E2 UUID constant
+CD2_UUID = 'UUID'
 
 def initdb(fn):
 	"""Initialize a database with a given name

@@ -52,3 +52,49 @@ def sanitycheckdp(parser, logfile):
 				print("Subtype does not exist in this record: {}".format(cdmrec), file=logfile)
 
 	return
+
+def sanitycheckcd(parser, logfile):
+	"""Sanity checks the following items from CADETS-E2 trace data.
+
+	1. CDM record type is recognizable.
+	2. Subtype within each record exists.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	logfile - file object where non-compliance is recorded
+	"""
+	for cdmrec in parser:
+		cdmrectype = cdmrec['datum'].keys()[0]
+
+		if not cdmrectype == CD2_TYPE_EVENT and \
+			not cdmrectype == CD2_TYPE_FILE and \
+			not cdmrectype == CD2_TYPE_SOCK and \
+			not cdmrectype == CD2_TYPE_SUBJECT and \
+			not cdmrectype == CD2_TYPE_SRCSINK and \
+			not cdmrectype == CD2_TYPE_PIPE and \
+			not cdmrectype == CD2_TYPE_PRINCIPAL and \
+			not cdmrectype == CD2_TYPE_TAG and \
+			not cdmrectype == CD2_TYPE_STARTMARKER and \
+			not cdmrectype == CD2_TYPE_TIMEMARKER and \
+			not cdmrectype == CD2_TYPE_HOST and \
+			not cdmrectype == CD2_TYPE_KEY and \
+			not cdmrectype == CD2_TYPE_MEMORY and \
+			not cdmrectype == CD2_TYPE_ENDMARKER and \
+			not cdmrectype == CD2_TYPE_UNITDEPENDENCY and \
+			not cdmrectype == CD2_TYPE_IPC:
+			print("unregistered CDM type: {}".format(cdmrectype), file=logfile)
+
+		if cdmrectype == CD2_TYPE_SOCK or \
+			cdmrectype == CD2_TYPE_PIPE or \
+			cdmrectype == CD2_TYPE_MEMORY:
+			pass
+		elif cdmrectype == CD2_TYPE_HOST:
+			cdmrecval = cdmrec['datum'][cdmrectype]
+			if 'hostType' not in cdmrecval:
+				print("Subtype does not exist in this host record: {}".format(cdmrec), file=logfile)
+		else:
+			cdmrecval = cdmrec['datum'][cdmrectype]
+			if 'type' not in cdmrecval:
+				print("Subtype does not exist in this record: {}".format(cdmrec), file=logfile)
+
+	return
