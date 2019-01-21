@@ -28,26 +28,20 @@ def parsedp(parser, ds, desc):
 		procnum = int(desc.split('.')[-1])
 	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=procnum)
 
-	logging.basicConfig(filename='format-error.log',level=logging.DEBUG)
+	for cdmrec in parser:
+		pb.update()
 
-	try:
-		for cdmrec in parser:
-			pb.update()
+		cdmrectype = cdmrec['datum'].keys()[0]
+		cdmrecval = cdmrec['datum'][cdmrectype]
 
-			cdmrectype = cdmrec['datum'].keys()[0]
-			cdmrecval = cdmrec['datum'][cdmrectype]
+		if cdmrectype == CDM_TYPE_EVENT:
+			pass
 
-			if cdmrectype == CDM_TYPE_EVENT:
-				pass
-
-			else:
-				cdmkey = cdmrecval['uuid']
-				cdmval = str(valgendp(cdmrectype, cdmrecval))
-				ds.put(cdmkey, cdmval)
-		pb.close()
-	except:
-		logging.debug(repr(cdmrec))
-		raise ValueError("parsing failed due to malformat JSON record")
+		else:
+			cdmkey = cdmrecval['uuid']
+			cdmval = str(valgendp(cdmrectype, cdmrecval))
+			ds.put(cdmkey, cdmval)
+	pb.close()
 
 def parsecd(parser, ds, desc):
 	"""Parse Cadets E2 trace data.
