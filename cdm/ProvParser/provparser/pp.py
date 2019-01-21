@@ -193,6 +193,8 @@ if __name__ == "__main__":
 		nprocs = mp.cpu_count()
 
 	if args.comma:
+		print("\x1b[6;30;41m[x]\x1b[0m Trailing comas are not supported. Run the following code to remove the tailing coma at the end of each line first:")
+		print("\x1b[6;30;43m[i]\x1b[0m sed 's/.$//' < INPUT_FILE > OUTPUT_FILE")
 		raise NotImplementedError("no support for malformatted FiveDirections datasets at the moment; a preprocessing step is needed to be implemented.")
 	
 	if args.compact:
