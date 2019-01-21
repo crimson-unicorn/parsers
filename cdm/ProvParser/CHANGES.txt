@@ -4,4 +4,5 @@ v0.0.2, 2019-01-19 -- Multiprocess output generation to multiple files simultane
 v0.0.3, 2019-01-20 -- Add support for Cadets E2 datasets.
 v0.0.4, 2019-01-21 -- Add -C option to use comma as a separator to parse JSON. No support for now. Remove this option after cleaning the FiveDirections Data.
 v0.0.5, 2019-01-21 -- Add parse-XXX.log for parsing errors. For example, ClearScope data contain records with no UUIDs.
+v0.0.6, 2019-01-21 -- Provide hint to clean the trailing comas if -C option is provided.
 
