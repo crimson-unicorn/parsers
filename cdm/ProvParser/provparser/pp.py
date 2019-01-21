@@ -179,7 +179,7 @@ if __name__ == "__main__":
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
 	parser.add_argument('-p', '--profile', help='profile the code for performance analysis', action='store_true')
-	parser.add_argument('-C', '--comma', help='use comma as a separator to parse JSON objects', action='store_true')
+	parser.add_argument('-C', '--comma', help='use coma as a separator to parse JSON objects (for FiveDirections datasets)', action='store_true')
 	global args
 	args = parser.parse_args()
 
