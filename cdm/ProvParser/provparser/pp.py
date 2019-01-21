@@ -19,10 +19,7 @@ def cprocess(fileobj, ds, fn, out=None):
 	ds - a database (for node parsing) or a sanitylog (for scanning)
 	fn - file name
 	"""
-	if args.comma:
-		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
-	else:
-		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 	if args.trace == 'camflow':
 		if args.scan:
@@ -96,10 +93,7 @@ def process(fn):
 	db = initdb(fn)
 
 	with open(os.path.join(args.input, fn), 'r') as fileobj:
-		if args.comma:
-			parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
-		else:
-			parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 		if args.trace == 'camflow':
 			if args.verbose:
@@ -152,10 +146,7 @@ def gprocess(i, fns):
 		print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))
 	ofile = open(ofilename, 'a+')
 
-	if args.comma:
-		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
-	else:
-		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 	if args.trace == 'camflow':
 		if args.verbose:
@@ -200,6 +191,9 @@ if __name__ == "__main__":
 		# create process pool
 		procs = list()
 		nprocs = mp.cpu_count()
+
+	if args.comma:
+		raise NotImplementedError("no support for malformatted FiveDirections datasets at the moment; a preprocessing step is needed to be implemented.")
 	
 	if args.compact:
 		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
