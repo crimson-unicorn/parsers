@@ -360,7 +360,7 @@ if __name__ == "__main__":
 				
 			fileobj = open(os.path.join(args.input, sortedfilenames[0]), 'r')
 			if args.verbose:
-				print("\x1b[6;30;43m[i]\x1b[0m start parsing regular JSON file {} again and generating outputs...".format(sfn))
+				print("\x1b[6;30;43m[i]\x1b[0m start parsing regular JSON file {} again and generating outputs...".format(sortedfilenames[0]))
 			cprocess(fileobj, db, sortedfilenames[0], ofile)
 			ofile.close()
 		else:
