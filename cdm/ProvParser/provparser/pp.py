@@ -19,7 +19,10 @@ def cprocess(fileobj, ds, fn, out=None):
 	ds - a database (for node parsing) or a sanitylog (for scanning)
 	fn - file name
 	"""
-	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+	if args.comma:
+		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
+	else:
+		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 	if args.trace == 'camflow':
 		if args.scan:
@@ -93,7 +96,10 @@ def process(fn):
 	db = initdb(fn)
 
 	with open(os.path.join(args.input, fn), 'r') as fileobj:
-		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+		if args.comma:
+			parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
+		else:
+			parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 		if args.trace == 'camflow':
 			if args.verbose:
@@ -146,7 +152,10 @@ def gprocess(i, fns):
 		print("\x1b[6;30;43m[i]\x1b[0m opening output file {} for writing...".format(ofilename))
 	ofile = open(ofilename, 'a+')
 
-	parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
+	if args.comma:
+		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), ',')
+	else:
+		parser = ijson.common.items(ijson.parse(fileobj, multiple_values=True), '')
 
 	if args.trace == 'camflow':
 		if args.verbose:
@@ -179,6 +188,7 @@ if __name__ == "__main__":
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
 	parser.add_argument('-p', '--profile', help='profile the code for performance analysis', action='store_true')
+	parser.add_argument('-C', '--comma', help='use comma as a separator to parse JSON objects', action='store_true')
 	global args
 	args = parser.parse_args()
 
