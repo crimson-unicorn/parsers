@@ -2,4 +2,6 @@ v0.0.1, 2019-01-18 -- Initial release.
 v0.0.2, 2019-01-19 -- Multiprocess output generation to multiple files simultaneously. 
 				   -- Remove -o option, output files are named by <TRACE>-out-<NUM>.txt.
 v0.0.3, 2019-01-20 -- Add support for Cadets E2 datasets.
-v0.0.4, 2019-01-21 -- Add -C option to use comma as a separator to parse JSON.
+v0.0.4, 2019-01-21 -- Add -C option to use comma as a separator to parse JSON. No support for now. Remove this option after cleaning the FiveDirections Data.
+v0.0.5, 2019-01-21 -- Add parse-XXX.log for parsing errors. For example, ClearScope data contain records with no UUIDs.
+
