@@ -5,6 +5,7 @@ README.md
 setup.py
 provparser/__init__.py
 provparser/pp.py
+provparser/up.py
 provparser.egg-info/PKG-INFO
 provparser.egg-info/SOURCES.txt
 provparser.egg-info/dependency_links.txt
