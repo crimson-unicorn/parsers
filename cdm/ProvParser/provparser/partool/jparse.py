@@ -61,6 +61,8 @@ def parsecd(parser, ds, desc):
 	ds - database system
 	desc - description of the process
 	"""
+	logging.basicConfig(filename='parse-error-' + desc + '.log', level=logging.DEBUG)
+
 	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)
 	procnum = 0
 	if desc.split('.')[-1].isdigit():
@@ -77,9 +79,12 @@ def parsecd(parser, ds, desc):
 			pass
 
 		else:
-			cdmkey = cdmrecval['uuid']
-			cdmval = str(valgendp(cdmrectype, cdmrecval))
-			ds.put(cdmkey, cdmval)
+			try:
+				cdmkey = cdmrecval['uuid']
+				cdmval = str(valgendp(cdmrectype, cdmrecval))
+				ds.put(cdmkey, cdmval)
+			except:
+				logging.debug('Parsing ERROR - Record without UUID: ' + repr(cdmrecval))
 	pb.close()
 
 def cgencf(parser, db, out):
