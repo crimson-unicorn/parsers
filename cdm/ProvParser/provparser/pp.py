@@ -173,7 +173,7 @@ def gprocess(i, fns):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert JSON datasets to Unicorn edgelist datasets.')
 	parser.add_argument('-v', '--verbose', action='store_true', help='increase console verbosity')
-	parser.add_argument('-t', '--trace', help='tracing system that generates the input', 
+	parser.add_argument('-t', '--trace', help='tracing system that generates the input (caution: FiveDirections)', 
 		choices=['camflow', 'darpa', 'cadets2', 'fivedirections'], required=True)
 	parser.add_argument('-i', '--input', help='input data folder', required=True)
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
@@ -182,6 +182,8 @@ if __name__ == "__main__":
 	parser.add_argument('-C', '--comma', help='use coma as a separator to parse JSON objects (for FiveDirections datasets)', action='store_true')
 	global args
 	args = parser.parse_args()
+
+	print("\x1b[6;30;42m[WARNING] Use '--t fivedirections' only for ta1-fivedirections-e3-official data. Exit now otherwise...\x1b[0m")
 
 	if args.scan:
 		print("\x1b[6;30;42m[+]\x1b[0m creating sanity.log in current directory...")
@@ -195,7 +197,7 @@ if __name__ == "__main__":
 	if args.comma:
 		print("\x1b[6;30;41m[x]\x1b[0m Trailing comas are not supported. Run the following code to remove the tailing coma at the end of each line first:")
 		print("\x1b[6;30;43m[i]\x1b[0m sed 's/.$//' < INPUT_FILE > OUTPUT_FILE")
-		raise NotImplementedError("no support for malformatted FiveDirections datasets at the moment; a preprocessing step is needed to be implemented.")
+		raise NotImplementedError("no support for malformatted FiveDirections dataset (ta1-fivedirections-e3-official) at the moment; a preprocessing step is needed to be implemented.")
 	
 	if args.compact:
 		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES

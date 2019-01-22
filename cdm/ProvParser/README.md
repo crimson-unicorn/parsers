@@ -75,5 +75,7 @@ The `-h` flag then will be input to the `__main__` function, which instructs you
 
 ## TODO
 
-- [ ] Try to use `ijson` parser directly to speed up the performance.
 - [ ] Create a `Makefile` to automatically install prerequisites and parse experiment datasets. 
+
+## Issue
+- [ ] FiveDirections data is very dirty. `ta1-fivedirections-e3-official` contains trailing comas and un-namespaced record types.
