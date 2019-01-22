@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="provparser",
-    version="0.0.7",
+    version="0.0.8",
     author="Xueyuan Michael Han",
     author_email="hanx@g.harvard.edu",
     description="Parse audit provenance data from CDM and CamFlow.",
