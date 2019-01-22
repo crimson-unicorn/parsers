@@ -56,18 +56,18 @@ def cprocess(fileobj, ds, fn, out=None):
 				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
 			ptj.cgendp(parser, ds, out)
 
-	elif args.trace == 'cadets2':
+	elif args.trace == 'cadets2' or args.trace == 'fivedirections':
 		if args.scan:
 			if args.verbose:
-				print("\x1b[6;30;42m[+]\x1b[0m scanning file {} in CADETS2 mode...".format(fn))
+				print("\x1b[6;30;42m[+]\x1b[0m scanning file {} in CADETS2/FIVEDIRECTIONS mode...".format(fn))
 			ptc.sanitycheckcd(parser, ds)
 
 		elif out == None:
-			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+			raise NotImplementedError("no support for processing {} compact files at the moment".format(args.trace))
 
 		else:
 			if args.verbose:
-				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in CADETS2 mode...".format(fn))
+				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in CADETS2/FIVEDIRECTIONS mode...".format(fn))
 				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
 			ptj.cgencd(parser, ds, out)
 
@@ -105,9 +105,9 @@ def process(fn):
 				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in DARPA mode...".format(fn))
 			ptj.parsedp(parser, db, fn)
 
-		elif args.trace == 'cadets2':
+		elif args.trace == 'cadets2' or args.trace == 'fivedirections':
 			if args.verbose:
-				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2 mode...".format(fn))
+				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2/FIVEDIRECTIONS mode...".format(fn))
 			ptj.parsecd(parser, db, fn)
 
 		else:
@@ -158,9 +158,9 @@ def gprocess(i, fns):
 			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in DARPA mode...".format(i))
 		ptj.gendp(parser, i, dbs, ofile)
 
-	elif args.trace == 'cadets2':
+	elif args.trace == 'cadets2' or args.trace == 'fivedirections':
 		if args.verbose:
-			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2 mode...".format(i))
+			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2/FIVEDIRECTIONS mode...".format(i))
 		ptj.gencd(parser, i, dbs, ofile)
 
 	else:
@@ -174,7 +174,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert JSON datasets to Unicorn edgelist datasets.')
 	parser.add_argument('-v', '--verbose', action='store_true', help='increase console verbosity')
 	parser.add_argument('-t', '--trace', help='tracing system that generates the input', 
-		choices=['camflow', 'darpa', 'cadets2'], required=True)
+		choices=['camflow', 'darpa', 'cadets2', 'fivedirections'], required=True)
 	parser.add_argument('-i', '--input', help='input data folder', required=True)
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
@@ -200,8 +200,8 @@ if __name__ == "__main__":
 	if args.compact:
 		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
 		# CURRENTLY, NO SUPPORT FOR CADETS2 DATASETS
-		if args.trace == 'cadets2':
-			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+		if args.trace == 'cadets2' or args.trace == 'fivedirections':
+			raise NotImplementedError("no support for processing {} compact files at the moment".format(args.trace))
 
 		if args.verbose:
 			print("\x1b[6;30;43m[i]\x1b[0m no support for multiprocessing in compact files at the moment")
@@ -286,8 +286,8 @@ if __name__ == "__main__":
 	print("\x1b[6;30;42m[+]\x1b[0m parsing files again to output final results.")
 
 	if args.compact:
-		if args.trace == 'cadets2':
-			raise NotImplementedError("no support for processing cadets2 compact files at the moment")
+		if args.trace == 'cadets2' or args.trace == 'fivedirections':
+			raise NotImplementedError("no support for processing {} compact files at the moment".format(args.trace))
 
 		ofilename = args.trace + '-out.txt'
 		if args.verbose:

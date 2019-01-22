@@ -50,7 +50,7 @@ def parsedp(parser, ds, desc):
 	pb.close()
 
 def parsecd(parser, ds, desc):
-	"""Parse Cadets E2 trace data.
+	"""Parse Cadets E2/FiveDirections trace data.
 	We store non-Event data (i.e., node) in a database.
 	The database is a key-value store where:
 	key - UUID of the data record
@@ -154,7 +154,7 @@ def cgendp(parser, db, out):
 	return
 
 def cgencd(parser, db, out):
-	"""Generate Cadets E2 outputs from compressed/single file.
+	"""Generate Cadets E2/FiveDirections outputs from compressed/single file.
 
 	Arguments:
 	parser - ijson parser that feeds JSON objects
@@ -276,7 +276,7 @@ def gendp(parser, i, dbs, out):
 	return
 
 def gencd(parser, i, dbs, out):
-	"""Generate CADETS2 outputs using a list of databases.
+	"""Generate CADETS2/FiveDirections outputs using a list of databases.
 
 	Arguments:
 	parser - ijson parser that feeds JSON objects
@@ -364,7 +364,7 @@ def processevent(cdmrecval, trace):
 
 	Arguments:
 	cdmrecval - value of the event
-	trace - the tracing system used
+	trace - the tracing system used (Cadets2 and FiveDirections belong to the same category)
 	"""
 	srcUUID = None
 	dstUUID = None
