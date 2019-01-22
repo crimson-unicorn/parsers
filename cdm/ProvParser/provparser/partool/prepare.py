@@ -22,7 +22,7 @@ CDM_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm18.UnitDependency'
 # CDM UUID constant
 CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
 
-# Cadets-E2 record type constants
+# Cadets-E2/FiveDirections record type constants
 CD2_TYPE_EVENT = 'Event'
 CD2_TYPE_FILE = 'FileObject'
 CD2_TYPE_SOCK = 'NetFlowObject'
@@ -40,7 +40,7 @@ CD2_TYPE_ENDMARKER = 'EndMarker'
 CD2_TYPE_UNITDEPENDENCY = 'UnitDependency'
 CD2_TYPE_IPC = 'IpcObject'
 
-# Cadets-E2 UUID constant
+# Cadets-E2/FiveDirections UUID constant
 CD2_UUID = 'UUID'
 
 def initdb(fn):
