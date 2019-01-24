@@ -7,8 +7,45 @@ import tqdm
 
 def parsecf(parser, ds, desc):
 	"""Parse CamFlow trace data.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	ds - database system
+	desc - description of the process
 	"""
-	raise NotImplementedError("currently we cannot parse CamFlow data in this module")
+	logging.basicConfig(filename='parse-error-camflow-' + desc + '.log', level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)	
+	procnum = 0
+	if desc.split('.')[-1].isdigit():
+		procnum = int(desc.split('.')[-1])
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=procnum)
+
+	for cfrec in parser:
+		pb.update()
+
+		if "activity" in cfrec:
+			activity = cfrec["activity"]
+			for uid in activity:
+				if "prov:type" not in activity[uid]:
+					logging.debug("Parsing ERROR - Activity (node) record without type. UUID: %s", uid)
+				else:
+					cfkey = uid
+					cfval = str(valgencf(activity[uid]))
+					ds.put(cfkey, cfval)
+
+		if "entity" in cfrec:
+			entity = cfrec["entity"]
+			for uid in entity:
+				if "prov:type" not in entity[uid]:
+					logging.debug("Parsing ERROR - Entity (node) record without type. UUID: %s", uid)
+				else:
+					cfkey = uid
+					cfval = str(valgencf(entity[uid]))
+					ds.put(cfkey, cfval)
+
+	pb.close()
+
 
 def parsedp(parser, ds, desc):
 	"""Parse DARPA trace data.
@@ -56,6 +93,8 @@ def parsecd(parser, ds, desc):
 	key - UUID of the data record
 	value - integer hash of attributes
 
+	Note: Only one subset of FiveDirections dataset uses this function. Other subsets use regular DARPA functions.
+
 	Arguments:
 	parser - ijson parser that feeds JSON objects
 	ds - database system
@@ -90,12 +129,184 @@ def parsecd(parser, ds, desc):
 def cgencf(parser, db, out):
 	"""Generate CamFlow outputs from compressed/single file.
 	"""
-	raise NotImplementedError("currently we cannot generate CamFlow output data in this module")
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
-def gencf(parser, i, dbs, ofile):
-	"""Generate CamFlow outputs using a list of databases.
-	"""
-	raise NotImplementedError("currently we cannot generate CamFlow output data in this module")
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+	
+	for cfrec in parser:
+		pb.update()
+
+		if "used" in cfrec:
+			used = cfrec["used"]
+			for uid in used:
+				if "prov:type" not in used[uid]:
+					logging.debug("Edge (used) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(used[uid])
+
+				if "cf:id" not in used[uid]:	# Can be used as timestamp
+					logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = used[uid]["cf:id"]
+
+				if "prov:entity" not in used[uid]:
+					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:activity" not in used[uid]:
+					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = used[uid]["prov:entity"]
+				dstUUID = used[uid]["prov:activity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (used) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (used) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasGeneratedBy" in cfrec:
+			wasGeneratedBy = cfrec["wasGeneratedBy"]
+			for uid in wasGeneratedBy:
+				if "prov:type" not in wasGeneratedBy[uid]:
+					logging.debug("Edge (wasGeneratedBy) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasGeneratedBy[uid])
+
+				if "cf:id" not in wasGeneratedBy[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasGeneratedBy[uid]["cf:id"]
+
+				if "prov:entity" not in wasGeneratedBy[uid]:
+					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:activity" not in wasGeneratedBy[uid]:
+					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasGeneratedBy[uid]["prov:activity"]
+				dstUUID = wasGeneratedBy[uid]["prov:entity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasGeneratedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasGeneratedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasInformedBy" in cfrec:
+			wasInformedBy = cfrec["wasInformedBy"]
+			for uid in wasInformedBy:
+				if "prov:type" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasInformedBy[uid])
+
+				if "cf:id" not in wasInformedBy[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasInformedBy[uid]["cf:id"]
+
+				if "prov:informant" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:informed" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasInformedBy[uid]["prov:informant"]
+				dstUUID = wasInformedBy[uid]["prov:informed"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasInformedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasInformedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasDerivedFrom" in cfrec:
+			wasDerivedFrom = cfrec["wasDerivedFrom"]
+			for uid in wasDerivedFrom:
+				if "prov:type" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasDerivedFrom[uid])
+
+				if "cf:id" not in wasDerivedFrom[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasDerivedFrom[uid]["cf:id"]
+
+				if "prov:usedEntity" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:generatedEntity" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
+				dstUUID = wasDerivedFrom[uid]["prov:generatedEntity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasDerivedFrom) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasDerivedFrom) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+				
+	pb.close()
+	return
 
 def cgendp(parser, db, out):
 	"""Generate DARPA outputs from compressed/single file.
@@ -108,7 +319,7 @@ def cgendp(parser, db, out):
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
 	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
-	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=0)
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
 	for cdmrec in parser:
 		pb.update()
 		cdmrectype = cdmrec['datum'].keys()[0]
@@ -161,6 +372,8 @@ def cgendp(parser, db, out):
 def cgencd(parser, db, out):
 	"""Generate Cadets E2/FiveDirections outputs from compressed/single file.
 
+	Note: Only one subset of FiveDirections dataset uses this function. Other subsets use regular DARPA functions.
+
 	Arguments:
 	parser - ijson parser that feeds JSON objects
 	db - database
@@ -168,7 +381,11 @@ def cgencd(parser, db, out):
 	"""
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+
 	for cdmrec in parser:
+		pb.update()
 		cdmrectype = cdmrec['datum'].keys()[0]
 		cdmrecval = cdmrec['datum'][cdmrectype]
 
@@ -214,6 +431,197 @@ def cgencd(parser, db, out):
 					+ ':' + str(timestamp) + '\t' + '\n')
 		else:
 			pass
+	return
+
+def gencf(parser, i, dbs, out):
+	"""Generate CamFlow outputs using a list of databases.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	i - the start index of the database list
+	dbs - a list of database
+	out - output file object
+	"""
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output from File \x1b[6;30;42m{}\x1b[0m'.format(i)
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=i)
+	
+	# for camflow, each file is independent
+	db = dbs[i]
+
+	for cfrec in parser:
+		pb.update()
+
+		if "used" in cfrec:
+			used = cfrec["used"]
+			for uid in used:
+				if "prov:type" not in used[uid]:
+					logging.debug("Edge (used) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(used[uid])
+
+				if "cf:id" not in used[uid]:	# Can be used as timestamp
+					logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = used[uid]["cf:id"]
+
+				if "prov:entity" not in used[uid]:
+					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:activity" not in used[uid]:
+					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = used[uid]["prov:entity"]
+				dstUUID = used[uid]["prov:activity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (used) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (used) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasGeneratedBy" in cfrec:
+			wasGeneratedBy = cfrec["wasGeneratedBy"]
+			for uid in wasGeneratedBy:
+				if "prov:type" not in wasGeneratedBy[uid]:
+					logging.debug("Edge (wasGeneratedBy) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasGeneratedBy[uid])
+
+				if "cf:id" not in wasGeneratedBy[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasGeneratedBy[uid]["cf:id"]
+
+				if "prov:entity" not in used[uid]:
+					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:activity" not in used[uid]:
+					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasGeneratedBy[uid]["prov:activity"]
+				dstUUID = wasGeneratedBy[uid]["prov:entity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasGeneratedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasGeneratedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasInformedBy" in cfrec:
+			wasInformedBy = cfrec["wasInformedBy"]
+			for uid in wasInformedBy:
+				if "prov:type" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasInformedBy[uid])
+
+				if "cf:id" not in wasInformedBy[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasInformedBy[uid]["cf:id"]
+
+				if "prov:informant" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:informed" not in wasInformedBy[uid]:
+					logging.debug("Edge (wasInformedBy) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasInformedBy[uid]["prov:informant"]
+				dstUUID = wasInformedBy[uid]["prov:informed"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasInformedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasInformedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+		if "wasDerivedFrom" in cfrec:
+			wasDerivedFrom = cfrec["wasDerivedFrom"]
+			for uid in wasDerivedFrom:
+				if "prov:type" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencf(wasDerivedFrom[uid])
+
+				if "cf:id" not in wasDerivedFrom[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasDerivedFrom[uid]["cf:id"]
+
+				if "prov:usedEntity" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without srcUUID. UUID: %s", uid)
+					continue
+
+				if "prov:generatedEntity" not in wasDerivedFrom[uid]:
+					logging.debug("Edge (wasDerivedFrom) record without dstUUID. UUID: %s", uid)
+					continue
+
+				srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
+				dstUUID = wasDerivedFrom[uid]["prov:generatedEntity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasDerivedFrom) record with an unmatched srcUUID. UUID: %s", uid)
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasDerivedFrom) record with an unmatched dstUUID. UUID: %s", uid)
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+				
+	pb.close()
 	return
 
 
@@ -536,4 +944,19 @@ def valgendp(cdmrectype, cdmrecval):
 	else:
 		val.append(cdmrecval['type'])
 
+	return hashgen(val)
+
+def valgencf(cfrecval):
+	"""Generate a single value for a CamFlow record.
+
+	Currently, only type information is used.
+
+	Arguments:
+	cfrecval - CamFlow record
+
+	Return:
+	a single integer value of the record
+	"""
+	val = list()
+	val.append(cfrecval["prov:type"])
 	return hashgen(val)

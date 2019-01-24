@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: provparser
-Version: 0.0.8
+Version: 0.0.9
 Summary: Parse audit provenance data from CDM and CamFlow.
 Home-page: https://github.com/crimson-unicorn/parsers/tree/master/cdm/ProvParser
 Author: Xueyuan Michael Han
@@ -83,8 +83,10 @@ Description: # Provenance JSON Parser
         
         ## TODO
         
-        - [ ] Try to use `ijson` parser directly to speed up the performance.
         - [ ] Create a `Makefile` to automatically install prerequisites and parse experiment datasets. 
+        
+        ## Issue
+        - [ ] FiveDirections data is very dirty. `ta1-fivedirections-e3-official` contains trailing comas and un-namespaced record types.
 Platform: UNKNOWN
 Classifier: Development Status :: 3 - Alpha
 Classifier: Intended Audience :: Science/Research
