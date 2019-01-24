@@ -183,7 +183,7 @@ if __name__ == "__main__":
 	global args
 	args = parser.parse_args()
 
-	print("\x1b[6;30;42m[WARNING] Use '--t fivedirections' only for ta1-fivedirections-e3-official data. Exit now otherwise...\x1b[0m")
+	print("\x1b[6;30;41m[WARNING] Use '-t fivedirections' only for ta1-fivedirections-e3-official data. Exit now otherwise...\x1b[0m")
 
 	if args.scan:
 		print("\x1b[6;30;42m[+]\x1b[0m creating sanity.log in current directory...")
