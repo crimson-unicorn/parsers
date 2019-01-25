@@ -1,12 +1,12 @@
-#!/usr/bin/env python
+#!python
 from __future__ import print_function
 import os, sys, argparse
 import tarfile as tf
 import ijson.backends.yajl2_cffi as ijson
-import partool.misc as ptm
-import partool.check as ptc
-import partool.jparse as ptj
-from partool.prepare import *
+import provparser.partool.misc as ptm
+import provparser.partool.check as ptc
+import provparser.partool.jparse as ptj
+from provparser.partool.prepare import *
 import multiprocessing as mp
 import yappi
 import rocksdb
