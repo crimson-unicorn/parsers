@@ -9,3 +9,4 @@ v0.0.7, 2019-01-21 -- Add up.py to output base and stream files for GraphChi pro
 v0.0.8, 2019-01-22 -- Add sp.py to extract a subset of files in the case of large tar file.
 v0.0.9, 2019-01-24 -- Add support for CamFlow datasets.
 v0.0.10, 2019-01-25 -- Now ProvParser is also a command line tool. Run `provparser -h`.
+v0.0.11, 2019-01-25 -- Add -k option to set the program exit status to fail if any error was encountered during parsing and processing.
