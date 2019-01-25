@@ -1,6 +1,6 @@
 Metadata-Version: 1.1
 Name: provparser
-Version: 0.0.10
+Version: 0.0.11
 Summary: Parse audit provenance data from CDM and CamFlow.
 Home-page: https://github.com/crimson-unicorn/parsers/tree/master/cdm/ProvParser
 Author: Xueyuan Michael Han

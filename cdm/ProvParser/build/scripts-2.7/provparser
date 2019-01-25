@@ -1,6 +1,7 @@
 #!python
 from __future__ import print_function
 import os, sys, argparse
+import re
 import tarfile as tf
 import ijson.backends.yajl2_cffi as ijson
 import provparser.partool.misc as ptm
@@ -180,6 +181,7 @@ if __name__ == "__main__":
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
 	parser.add_argument('-p', '--profile', help='profile the code for performance analysis', action='store_true')
 	parser.add_argument('-C', '--comma', help='use coma as a separator to parse JSON objects (for FiveDirections datasets)', action='store_true')
+	parser.add_argument('-k', '--kill', help='exit the program with error if error happened during parsing/processing', action='store_true')
 	global args
 	args = parser.parse_args()
 
@@ -390,5 +392,43 @@ if __name__ == "__main__":
 			stat = yappi.get_func_stats()
 			stat.save('gen.prof', type='callgrind')
 	
-	print("\x1b[6;30;42m[+]\x1b[0m finished")
+	print("\x1b[6;30;42m[+]\x1b[0m finished output generation")
+
+	if args.kill:
+		print("\x1b[6;30;42m[+]\x1b[0m checking parsing errors...")
+		kill = False
+
+		if args.verbose:
+			print("\x1b[6;30;43m[i]\x1b[0m checking error.log for errors...")
+		errornum = 0
+		with open('error.log', 'r') as errf:
+			for line in errf:
+				errornum += 1
+		errf.close()
+
+		pattern = re.compile("parse-[0-9A-Za-z\-]*.log")
+		parsenum = 0
+		fns = os.listdir('.')
+		for fn in fns:
+			if pattern.match(fn):
+				with open(fn, 'r') as errf:
+					if args.verbose:
+						print("\x1b[6;30;43m[i]\x1b[0m checking {} for errors...".format(fn))
+					for line in errf:
+						parsenum += 1
+				errf.close()
+
+		if errornum > 0 or parsenum > 0:
+			print("\x1b[6;30;41m[x]\x1b[0m {} errors in error.log...".format(errornum))
+			print("\x1b[6;30;41m[x]\x1b[0m {} errors in parse-error-XXX.log...".format(parsenum))
+			print("\x1b[6;30;43m[i]\x1b[0m set program exit status to failure")
+			raise RuntimeError('check error logs for parsing and processing errors!')
+		else:
+			print("\x1b[6;30;43m[i]\x1b[0m program exit without errors!")
+
+
+
+
+
+
 
