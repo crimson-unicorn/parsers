@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="provparser",
-    version="0.0.9",
+    version="0.0.10",
     author="Xueyuan Michael Han",
     author_email="hanx@g.harvard.edu",
     description="Parse audit provenance data from CDM and CamFlow.",
@@ -23,6 +23,7 @@ setuptools.setup(
     dependency_links=[
           "https://github.com/isagalaev/ijson/tarball/e252a50#egg=ijson-2.4",
     ],
+    scripts=['provparser/provparser'],
     packages=setuptools.find_packages(),
     classifiers=[
         "Development Status :: 3 - Alpha",

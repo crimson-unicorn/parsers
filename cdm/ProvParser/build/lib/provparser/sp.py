@@ -2,7 +2,7 @@
 from __future__ import print_function
 import os, sys, argparse
 import tarfile as tf
-import partool.misc as ptm
+import provparser.partool.misc as ptm
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Decompress selected files within a tar file.')

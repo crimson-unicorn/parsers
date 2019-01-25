@@ -4,7 +4,7 @@ MANIFEST.in
 README.md
 setup.py
 provparser/__init__.py
-provparser/pp.py
+provparser/provparser
 provparser/sp.py
 provparser/up.py
 provparser.egg-info/PKG-INFO
