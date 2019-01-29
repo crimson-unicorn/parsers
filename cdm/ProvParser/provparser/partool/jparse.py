@@ -353,15 +353,15 @@ def cgendp(parser, db, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -417,15 +417,15 @@ def cgencd(parser, db, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -671,15 +671,15 @@ def gendp(parser, i, dbs, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -734,15 +734,15 @@ def gencd(parser, i, dbs, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
