@@ -81,8 +81,8 @@ def parsedp(parser, ds, desc):
 				cdmkey = cdmrecval['uuid'].encode('utf-8')
 				cdmval = str(valgendp(cdmrectype, cdmrecval))
 				ds.put(cdmkey, cdmval)
-			except:
-				logging.debug('Parsing ERROR - Record without UUID: ' + repr(cdmrecval))
+			except Exception as e:
+				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
 				
 	pb.close()
 
@@ -122,8 +122,8 @@ def parsecd(parser, ds, desc):
 				cdmkey = cdmrecval['uuid'].encode('utf-8')
 				cdmval = str(valgendp(cdmrectype, cdmrecval))
 				ds.put(cdmkey, cdmval)
-			except:
-				logging.debug('Parsing ERROR - Record without UUID: ' + repr(cdmrecval))
+			except Exception as e:
+				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
 	pb.close()
 
 def cgencf(parser, db, out):
