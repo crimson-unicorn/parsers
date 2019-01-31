@@ -78,11 +78,11 @@ def parsedp(parser, ds, desc):
 
 		else:
 			try:
-				cdmkey = cdmrecval['uuid']
+				cdmkey = cdmrecval['uuid'].encode('utf-8')
 				cdmval = str(valgendp(cdmrectype, cdmrecval))
 				ds.put(cdmkey, cdmval)
-			except:
-				logging.debug('Parsing ERROR - Record without UUID: ' + repr(cdmrecval))
+			except Exception as e:
+				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
 				
 	pb.close()
 
@@ -119,11 +119,11 @@ def parsecd(parser, ds, desc):
 
 		else:
 			try:
-				cdmkey = cdmrecval['uuid']
+				cdmkey = cdmrecval['uuid'].encode('utf-8')
 				cdmval = str(valgendp(cdmrectype, cdmrecval))
 				ds.put(cdmkey, cdmval)
-			except:
-				logging.debug('Parsing ERROR - Record without UUID: ' + repr(cdmrecval))
+			except Exception as e:
+				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
 	pb.close()
 
 def cgencf(parser, db, out):
@@ -343,25 +343,25 @@ def cgendp(parser, db, out):
 			if srcUUID == None or dstUUID == None:
 				continue
 
-			srcVal = db.get(srcUUID)
+			srcVal = db.get(srcUUID.encode('utf-8'))
 			if srcVal == None:
 				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			dstVal = db.get(dstUUID)
+			dstVal = db.get(dstUUID.encode('utf-8'))
 			if dstVal == None:
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -407,25 +407,25 @@ def cgencd(parser, db, out):
 			if srcUUID == None or dstUUID == None:
 				continue
 
-			srcVal = db.get(srcUUID)
+			srcVal = db.get(srcUUID.encode('utf-8'))
 			if srcVal == None:
 				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			dstVal = db.get(dstUUID)
+			dstVal = db.get(dstUUID.encode('utf-8'))
 			if dstVal == None:
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -671,15 +671,15 @@ def gendp(parser, i, dbs, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -734,15 +734,15 @@ def gencd(parser, i, dbs, out):
 				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
 				continue
 
-			out.write(str(hashgen([srcUUID])) + '\t' \
-					+ str(hashgen([dstUUID])) + '\t' \
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
 
 			if bidirection:
-				out.write(str(hashgen([dstUUID])) + '\t' \
-					+ str(hashgen([srcUUID])) + '\t' \
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
 					+ str(dstVal) + ':' + str(srcVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
@@ -762,12 +762,12 @@ def getfromdb(dbs, i, uuid):
 	"""
 	val = None
 	for ind in range(i, -1, -1):
-		val = dbs[ind].get(uuid)
+		val = dbs[ind].get(uuid.encode('utf-8'))
 		if not val == None:
 			break
 	if val == None:
 		for ind in range(len(dbs)-1, i, -1):
-			val = dbs[ind].get(uuid)
+			val = dbs[ind].get(uuid.encode('utf-8'))
 			if not val == None:
 				break
 	return val

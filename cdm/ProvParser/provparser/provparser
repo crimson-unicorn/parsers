@@ -403,6 +403,8 @@ if __name__ == "__main__":
 		errornum = 0
 		with open('error.log', 'r') as errf:
 			for line in errf:
+				if args.verbose:
+					print(line)
 				errornum += 1
 		errf.close()
 
@@ -415,6 +417,8 @@ if __name__ == "__main__":
 					if args.verbose:
 						print("\x1b[6;30;43m[i]\x1b[0m checking {} for errors...".format(fn))
 					for line in errf:
+						if args.verbose:
+							print(line)
 						parsenum += 1
 				errf.close()
 
