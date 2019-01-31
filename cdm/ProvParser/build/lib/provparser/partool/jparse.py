@@ -153,11 +153,11 @@ def cgencf(parser, db, out):
 					timestamp = used[uid]["cf:id"]
 
 				if "prov:entity" not in used[uid]:
-					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record without srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				if "prov:activity" not in used[uid]:
-					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record without dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = used[uid]["prov:entity"]
@@ -165,12 +165,12 @@ def cgencf(parser, db, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (used) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record with an unmatched srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (used) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record with an unmatched dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -195,11 +195,11 @@ def cgencf(parser, db, out):
 					timestamp = wasGeneratedBy[uid]["cf:id"]
 
 				if "prov:entity" not in wasGeneratedBy[uid]:
-					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record without srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				if "prov:activity" not in wasGeneratedBy[uid]:
-					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record without dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasGeneratedBy[uid]["prov:activity"]
@@ -207,12 +207,12 @@ def cgencf(parser, db, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasGeneratedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasGeneratedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -237,11 +237,11 @@ def cgencf(parser, db, out):
 					timestamp = wasInformedBy[uid]["cf:id"]
 
 				if "prov:informant" not in wasInformedBy[uid]:
-					logging.debug("Edge (wasInformedBy) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record without srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				if "prov:informed" not in wasInformedBy[uid]:
-					logging.debug("Edge (wasInformedBy) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record without dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasInformedBy[uid]["prov:informant"]
@@ -249,12 +249,12 @@ def cgencf(parser, db, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasInformedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasInformedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -279,11 +279,11 @@ def cgencf(parser, db, out):
 					timestamp = wasDerivedFrom[uid]["cf:id"]
 
 				if "prov:usedEntity" not in wasDerivedFrom[uid]:
-					logging.debug("Edge (wasDerivedFrom) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record without srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				if "prov:generatedEntity" not in wasDerivedFrom[uid]:
-					logging.debug("Edge (wasDerivedFrom) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record without dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
@@ -291,12 +291,12 @@ def cgencf(parser, db, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasDerivedFrom) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasDerivedFrom) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -469,11 +469,11 @@ def gencf(parser, i, dbs, out):
 					timestamp = used[uid]["cf:id"]
 
 				if "prov:entity" not in used[uid]:
-					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record without srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				if "prov:activity" not in used[uid]:
-					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record without dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = used[uid]["prov:entity"]
@@ -481,12 +481,12 @@ def gencf(parser, i, dbs, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (used) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record with an unmatched srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (used) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (used/{}) record with an unmatched dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -511,11 +511,11 @@ def gencf(parser, i, dbs, out):
 					timestamp = wasGeneratedBy[uid]["cf:id"]
 
 				if "prov:entity" not in used[uid]:
-					logging.debug("Edge (used) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record without srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				if "prov:activity" not in used[uid]:
-					logging.debug("Edge (used) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record without dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasGeneratedBy[uid]["prov:activity"]
@@ -523,12 +523,12 @@ def gencf(parser, i, dbs, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasGeneratedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasGeneratedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -553,11 +553,11 @@ def gencf(parser, i, dbs, out):
 					timestamp = wasInformedBy[uid]["cf:id"]
 
 				if "prov:informant" not in wasInformedBy[uid]:
-					logging.debug("Edge (wasInformedBy) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record without srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				if "prov:informed" not in wasInformedBy[uid]:
-					logging.debug("Edge (wasInformedBy) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record without dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasInformedBy[uid]["prov:informant"]
@@ -565,12 +565,12 @@ def gencf(parser, i, dbs, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasInformedBy) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasInformedBy) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasInformedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
@@ -595,11 +595,11 @@ def gencf(parser, i, dbs, out):
 					timestamp = wasDerivedFrom[uid]["cf:id"]
 
 				if "prov:usedEntity" not in wasDerivedFrom[uid]:
-					logging.debug("Edge (wasDerivedFrom) record without srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record without srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				if "prov:generatedEntity" not in wasDerivedFrom[uid]:
-					logging.debug("Edge (wasDerivedFrom) record without dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record without dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
@@ -607,12 +607,12 @@ def gencf(parser, i, dbs, out):
 
 				srcVal = db.get(srcUUID)
 				if srcVal == None:
-					logging.debug("Edge (wasDerivedFrom) record with an unmatched srcUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				dstVal = db.get(dstUUID)
 				if dstVal == None:
-					logging.debug("Edge (wasDerivedFrom) record with an unmatched dstUUID. UUID: %s", uid)
+					logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
 					continue
 
 				out.write(str(hashgen([srcUUID])) + '\t' \
