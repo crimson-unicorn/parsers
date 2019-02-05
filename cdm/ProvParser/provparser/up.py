@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os, sys, argparse
-import rocksdb
 import tqdm
 
 if __name__ == "__main__":
@@ -16,6 +15,7 @@ if __name__ == "__main__":
 	args = parser.parse_args()
 
 	if not args.memory:
+		import rocksdb
 		# create database for nodes
 		opts = rocksdb.Options()
 		opts.create_if_missing = True
