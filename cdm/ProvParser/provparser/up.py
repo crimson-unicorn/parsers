@@ -7,6 +7,7 @@ import tqdm
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert edgelist datasets to Unicorn Stream datasets.')
 	parser.add_argument('-v', '--verbose', help='increase console verbosity', action='store_true')
+	parser.add_argument('-m', '--memory', help='use in-memory dictionary instead of RocksDB', action='store_true')
 	parser.add_argument('-S', '--size', help='size of base output file (in # of edges)', type=int, required=True)
 	parser.add_argument('-i', '--input', help='input file path', required=True)
 	parser.add_argument('-b', '--base', help='base output file path', required=True)
@@ -14,22 +15,25 @@ if __name__ == "__main__":
 	global args
 	args = parser.parse_args()
 
-	# create database for nodes
-	opts = rocksdb.Options()
-	opts.create_if_missing = True
-	opts.max_open_files = 300000
-	opts.write_buffer_size = 67108864
-	opts.max_write_buffer_number = 3
-	opts.target_file_size_base = 67108864
+	if not args.memory:
+		# create database for nodes
+		opts = rocksdb.Options()
+		opts.create_if_missing = True
+		opts.max_open_files = 300000
+		opts.write_buffer_size = 67108864
+		opts.max_write_buffer_number = 3
+		opts.target_file_size_base = 67108864
 
-	opts.table_factory = rocksdb.BlockBasedTableFactory(
-		filter_policy=rocksdb.BloomFilterPolicy(10),
-		block_cache=rocksdb.LRUCache(2 * (1024 ** 3)),
-		block_cache_compressed=rocksdb.LRUCache(500 * (1024 ** 2)))
+		opts.table_factory = rocksdb.BlockBasedTableFactory(
+			filter_policy=rocksdb.BloomFilterPolicy(10),
+			block_cache=rocksdb.LRUCache(2 * (1024 ** 3)),
+			block_cache_compressed=rocksdb.LRUCache(500 * (1024 ** 2)))
 
-	db = rocksdb.DB('nodes.db', opts)
-	if args.verbose:
-		print("\x1b[6;30;42m[+]\x1b[0m setting up database nodes.db in current directory...")
+		db = rocksdb.DB('nodes.db', opts)
+		if args.verbose:
+			print("\x1b[6;30;42m[+]\x1b[0m setting up database nodes.db in current directory...")
+	else:
+		db = dict()
 
 	bf = open(args.base, "w")
 	if args.verbose:
@@ -57,7 +61,10 @@ if __name__ == "__main__":
 				srcBool = "0"
 			else:
 				srcBool = "1"
-				db.put(edge[0], str(nid))
+				if args.memory:
+					db[edge[0]] = str(nid)
+				else:
+					db.put(edge[0], str(nid))
 				edge[0] = str(nid)
 				nid = nid + 1
 
@@ -68,7 +75,10 @@ if __name__ == "__main__":
 				dstBool = "0"
 			else:
 				dstBool = "1"
-				db.put(edge[1], str(nid))
+				if args.memory:
+					db[edge[1]] = str(nid)
+				else:
+					db.put(edge[1], str(nid))
 				edge[1] = str(nid)
 				nid = nid + 1
 
