@@ -104,14 +104,18 @@ cadets_e3:
 		cd ../../../data/cadets-e3/benign && rm -f cadets-e3-benign-$$number.gz.tar && rm -rf cadets-e3-benign-$$number ; \
 		number=`expr $$number + 1` ; \
 	done
-	number=0 ; for file in ../../../data/cadets-e3/edgelists_benign/* ; do \
-		python ProvParser/provparser/up.py -v -m -S 2000 -i $${file} -b ../../../data/cadets-e3/train/base/base-cadets-e3-benign-$$number.txt -s ../../../data/cadets-e3/train/stream/stream-cadets-e3-benign-$$number.txt ; \
+	number=0 ; while [ $$number -le 7 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 2000 -i ../../../data/cadets-e3/edgelists_benign/cadets-e3-benign.txt.$$number -b ../../../data/cadets-e3/train/base/base-cadets-e3-benign-$$number.txt -s ../../../data/cadets-e3/train/stream/stream-cadets-e3-benign-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 0 ] ; do \
+		cd ../../../data/cadets-e3/attack && mkdir cadets-e3-official-$$number && tar zxvf cadets-e3-official-$$number.gz.tar -C cadets-e3-official-$$number && mv cadets-e3-official-$$number/cadets-e3-attack.txt.* ../edgelists_attack ; \
+		cd ../../../data/cadets-e3/attack && rm -f cadets-e3-official-$$number.gz.tar && rm -rf cadets-e3-official-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 0 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 2000 -i ../../../data/cadets-e3/edgelists_attack/cadets-e3-attack.txt.$$number -b ../../../data/cadets-e3/test/base/base-cadets-e3-attack-$$number.txt -s ../../../data/cadets-e3/test/stream/stream-cadets-e3-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 
-test:
-	number=0 ; for file in ../cadets/* ; do \
-		echo $${file} ; \
-		number=`expr $$number + 1` ; \
-	done
 	
