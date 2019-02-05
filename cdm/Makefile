@@ -98,18 +98,22 @@ tojson:
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.5 > json/trace-e3-1-5.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.6 > json/trace-e3-1-6.json 2>/dev/null
 
+define decompress
+	mkdir $(1)
+	tar zxvf $(1).gz.tar -C $(1)
+	mv $(1)/$(2).* ../$(3)
+	rm -f $(1).gz.tar
+	rm -rf $(1)
+endef
 
-cadets:
-	python convert.py --system cadets --source json/cadets-e3/ --save cadets-e3.txt
+cadets_e3:
+	number=0 ; while [ $$number -le 1 ] ; do \
+		cd ../../../data/cadets-e3/benign && $(call decompress,cadets-e3-benign-$$number.gz.tar,cadets-e3-benign.txt,edgelists_benign) ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; for file in ../../../data/cadets-e3/edgelists_benign/* ; do \
+		python ProvParser/provparser/up.py -v -m -S 2000 -i $${file} -b ../../../data/cadets-e3/train/base/base-cadets-e3-benign-$$number.txt -s ../../../data/cadets-e3/train/stream/stream-cadets-e3-benign-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
 
-clearscope:
-	python convert.py --system clearscope --source json/clearscope-e3/ --save clearscope-e3.txt
-
-fivedirections:
-	python convert.py --system fivedirections --source json/fivedirections-e3/ --save fivedirections-e3.txt
-
-theia:
-	python convert.py --system theia --source json/theia-e3/ --save theia-e3.txt
-
-trace:
-	python convert.py --source json/trace-e3/ --save trace-e3.txt
+	
