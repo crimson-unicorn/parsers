@@ -98,17 +98,10 @@ tojson:
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.5 > json/trace-e3-1-5.json 2>/dev/null
 	java -jar avro-tools-1.8.2.jar tojson avro/ta1-trace-e3-official-1.bin.6 > json/trace-e3-1-6.json 2>/dev/null
 
-define decompress
-	mkdir $(1)
-	tar zxvf $(1).gz.tar -C $(1)
-	mv $(1)/$(2).* ../$(3)
-	rm -f $(1).gz.tar
-	rm -rf $(1)
-endef
-
 cadets_e3:
 	number=0 ; while [ $$number -le 1 ] ; do \
-		cd ../../../data/cadets-e3/benign && $(call decompress,cadets-e3-benign-$$number.gz.tar,cadets-e3-benign.txt,edgelists_benign) ; \
+		cd ../../../data/cadets-e3/benign && mkdir cadets-e3-benign-$$number && tar zxvf cadets-e3-benign-$$number.gz.tar -C cadets-e3-benign-$$number && mv cadets-e3-benign-$$number/cadets-e3-benign.txt.* ../edgelists_benign ; \
+		cd ../../../data/cadets-e3/benign && rm -f cadets-e3-benign-$$number.gz.tar && rm -rf cadets-e3-benign-$$number ; \
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; for file in ../../../data/cadets-e3/edgelists_benign/* ; do \
