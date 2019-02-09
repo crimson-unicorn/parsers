@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 from __future__ import print_function
 import os, sys, argparse
-import tqdm
+# import tqdm
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert edgelist datasets to Unicorn Stream datasets.')
@@ -47,11 +47,11 @@ if __name__ == "__main__":
 	cnt = 0
 
 	description = '\x1b[6;30;43m[i]\x1b[0m Progress'
-	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+	# pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
 
 	with open(args.input) as f:
 		for line in f:
-			pb.update()
+			# pb.update()
 			edge = line.strip().split("\t")
 
 			srcID = db.get(edge[0])
