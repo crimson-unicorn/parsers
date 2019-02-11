@@ -53,46 +53,49 @@ if __name__ == "__main__":
 		for line in f:
 			pb.update()
 			edge = line.strip().split("\t")
-
-			srcID = db.get(edge[0])
-			srcBool = None
-			if srcID != None:	# Check if source ID has been seen before.
-				edge[0] = srcID
-				srcBool = "0"
-			else:
-				srcBool = "1"
-				if args.memory:
-					db[edge[0]] = str(nid)
+			try:
+				srcID = db.get(edge[0])
+				srcBool = None
+				if srcID != None:	# Check if source ID has been seen before.
+					edge[0] = srcID
+					srcBool = "0"
 				else:
-					db.put(edge[0], str(nid))
-				edge[0] = str(nid)
-				nid = nid + 1
+					srcBool = "1"
+					if args.memory:
+						db[edge[0]] = str(nid)
+					else:
+						db.put(edge[0], str(nid))
+					edge[0] = str(nid)
+					nid = nid + 1
 
-			dstID = db.get(edge[1])
-			dstBool = None
-			if dstID != None:	# Check if destination ID has been seen before.
-				edge[1] = dstID
-				dstBool = "0"
-			else:
-				dstBool = "1"
-				if args.memory:
-					db[edge[1]] = str(nid)
+				dstID = db.get(edge[1])
+				dstBool = None
+				if dstID != None:	# Check if destination ID has been seen before.
+					edge[1] = dstID
+					dstBool = "0"
 				else:
-					db.put(edge[1], str(nid))
-				edge[1] = str(nid)
-				nid = nid + 1
+					dstBool = "1"
+					if args.memory:
+						db[edge[1]] = str(nid)
+					else:
+						db.put(edge[1], str(nid))
+					edge[1] = str(nid)
+					nid = nid + 1
 
-			attributes = edge[2].strip().split(":")
-			srctype = attributes[0]
-			dsttype = attributes[1]
-			edgetype = attributes[2]
-			timestamp = attributes[3]
-			
-			if cnt < args.size:
-				cnt = cnt + 1
-				bf.write(edge[0] + ' ' + edge[1] + ' ' + srctype + ':' + dsttype + ':' + edgetype + ':' + timestamp + '\n')
-			else:
-				sf.write(edge[0] + ' ' + edge[1] + ' ' + srctype + ':' + dsttype + ':' + edgetype + ':' + srcBool + ":" + dstBool + ":" + timestamp + '\n')
+				attributes = edge[2].strip().split(":")
+				srctype = attributes[0]
+				dsttype = attributes[1]
+				edgetype = attributes[2]
+				timestamp = attributes[3]
+				
+				if cnt < args.size:
+					cnt = cnt + 1
+					bf.write(edge[0] + ' ' + edge[1] + ' ' + srctype + ':' + dsttype + ':' + edgetype + ':' + timestamp + '\n')
+				else:
+					sf.write(edge[0] + ' ' + edge[1] + ' ' + srctype + ':' + dsttype + ':' + edgetype + ':' + srcBool + ":" + dstBool + ":" + timestamp + '\n')
+			except:
+				print("\x1b[6;30;41m\n[error]\x1b[0m  skipping this problematic line:{}".format(line))
+
 
 	f.close()
 	bf.close()
