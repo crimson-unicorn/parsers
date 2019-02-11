@@ -510,11 +510,11 @@ def gencf(parser, i, dbs, out):
 				else:
 					timestamp = wasGeneratedBy[uid]["cf:id"]
 
-				if "prov:entity" not in used[uid]:
+				if "prov:entity" not in wasGeneratedBy[uid]:
 					logging.debug("Edge (wasGeneratedBy/{}) record without srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
-				if "prov:activity" not in used[uid]:
+				if "prov:activity" not in wasGeneratedBy[uid]:
 					logging.debug("Edge (wasGeneratedBy/{}) record without dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
 					continue
 
