@@ -1,4 +1,4 @@
-Metadata-Version: 1.1
+Metadata-Version: 2.1
 Name: provparser
 Version: 0.0.11
 Summary: Parse audit provenance data from CDM and CamFlow.
@@ -94,3 +94,4 @@ Classifier: License :: OSI Approved :: GNU General Public License (GPL)
 Classifier: Natural Language :: English
 Classifier: Programming Language :: Python :: 2.7
 Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
