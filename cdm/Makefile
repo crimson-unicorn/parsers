@@ -122,7 +122,7 @@ theia_e3:
 	cd ../../../data/theia-e3/benign && mkdir theia-e3-benign && tar zxvf theia-e3-benign.gz.tar -C theia-e3-benign && mv theia-e3-benign/theia-e3-benign.txt.* ../edgelists_benign
 	cd ../../../data/theia-e3/benign && rm -f theia-e3-benign.gz.tar && rm -rf theia-e3-benign
 	number=0 ; while [ $$number -le 1 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 2000 -i ../../../data/theia-e3/edgelists_benign/theia-e3-benign.txt.$$number -b ../../../data/theia-e3/train/base/base-theia-e3-benign-$$number.txt -s ../../../data/theia-e3/train/stream/stream-theia-e3-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/theia-e3/edgelists_benign/theia-e3-benign.txt.$$number -b ../../../data/theia-e3/train/base/base-theia-e3-benign-$$number.txt -s ../../../data/theia-e3/train/stream/stream-theia-e3-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	cd ../../../data/theia-e3/attack && mkdir theia-e3-official-1r && tar zxvf theia-e3-official-1r.gz.tar -C theia-e3-official-1r && mv theia-e3-official-1r/theia-e3-official.txt.* ../edgelists_attack
@@ -134,7 +134,7 @@ theia_e3:
 	cd ../../../data/theia-e3/attack && mkdir theia-e3-official-6r && tar zxvf theia-e3-official-6r.gz.tar -C theia-e3-official-6r && mv theia-e3-official-6r/theia-e3-official.txt.* ../edgelists_attack
 	cd ../../../data/theia-e3/attack && rm -f theia-e3-official-6r.gz.tar && rm -rf theia-e3-official-6r
 	number=0 ; while [ $$number -le 24 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 2000 -i ../../../data/theia-e3/edgelists_attack/theia-e3-official.txt.$$number -b ../../../data/theia-e3/test/base/base-theia-e3-attack-$$number.txt -s ../../../data/theia-e3/test/stream/stream-theia-e3-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/theia-e3/edgelists_attack/theia-e3-official.txt.$$number -b ../../../data/theia-e3/test/base/base-theia-e3-attack-$$number.txt -s ../../../data/theia-e3/test/stream/stream-theia-e3-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 
