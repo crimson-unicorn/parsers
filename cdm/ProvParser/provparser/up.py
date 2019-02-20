@@ -7,7 +7,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert edgelist datasets to Unicorn Stream datasets.')
 	parser.add_argument('-v', '--verbose', help='increase console verbosity', action='store_true')
 	parser.add_argument('-m', '--memory', help='use in-memory dictionary instead of RocksDB', action='store_true')
-	parser.add_argument('-S', '--size', help='size of base output file (in # of edges)', type=int, required=True)
+	parser.add_argument('-S', '--size', help='size of base output file in # of edges (set automatically if not given)', type=int)
 	parser.add_argument('-i', '--input', help='input file path', required=True)
 	parser.add_argument('-b', '--base', help='base output file path', required=True)
 	parser.add_argument('-s', '--stream', help='stream output file path', required=True)
@@ -34,6 +34,15 @@ if __name__ == "__main__":
 			print("\x1b[6;30;42m[+]\x1b[0m setting up database nodes.db in current directory...")
 	else:
 		db = dict()
+
+	if args.size is None:
+		# auto set base graph size in # of edges
+		total = 0
+		with open(args.input) as f:
+			for line in f:
+				total += 1
+		f.close()
+		args.size = total * 0.1
 
 	bf = open(args.base, "w")
 	if args.verbose:
