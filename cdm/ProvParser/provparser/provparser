@@ -71,7 +71,14 @@ def cprocess(fileobj, ds, fn, out=None):
 				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in CADETS2/FIVEDIRECTIONS mode...".format(fn))
 				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
 			ptj.cgencd(parser, ds, out)
-
+	elif args.trace == 'spade':
+		if out == None:
+			raise NotImplementedError("no support for processing {} compact files at the moment".format(args.trace))
+		else:
+			if args.verbose:
+				print("\x1b[6;30;42m[+]\x1b[0m generating output for file {} in SPADE mode...".format(fn))
+				print("\x1b[6;30;43m[i]\x1b[0m initiating logging. Check error.log afterwards...")
+			ptj.cgensp(parser, ds, out)
 	else:
 		raise NotImplementedError("cannot run traces from an unknown system")
 
@@ -110,7 +117,10 @@ def process(fn):
 			if args.verbose:
 				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2/FIVEDIRECTIONS mode...".format(fn))
 			ptj.parsecd(parser, db, fn)
-
+		elif args.trace == 'spade':
+			if args.verbose:
+				print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in SPADE mode...".format(fn))
+			ptj.parsesp(parser, db, fn)
 		else:
 			raise NotImplementedError("cannot run traces from an unknown system")
 
@@ -164,6 +174,11 @@ def gprocess(i, fns):
 			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in CADETS2/FIVEDIRECTIONS mode...".format(i))
 		ptj.gencd(parser, i, dbs, ofile)
 
+	elif args.trace == 'spade':
+		if args.verbose:
+			print("\x1b[6;30;42m[+]\x1b[0m parsing file {} in SPADE mode...".format(i))
+		ptj.gensp(parser, i, dbs, ofile)
+
 	else:
 		raise NotImplementedError("cannot run traces from an unknown system")
 
@@ -175,7 +190,7 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert JSON datasets to Unicorn edgelist datasets.')
 	parser.add_argument('-v', '--verbose', action='store_true', help='increase console verbosity')
 	parser.add_argument('-t', '--trace', help='tracing system that generates the input (caution: FiveDirections)', 
-		choices=['camflow', 'darpa', 'cadets2', 'fivedirections'], required=True)
+		choices=['camflow', 'darpa', 'cadets2', 'fivedirections', 'spade'], required=True)
 	parser.add_argument('-i', '--input', help='input data folder', required=True)
 	parser.add_argument('-c', '--compact', help='input data is compressed',  action='store_true')
 	parser.add_argument('-s', '--scan', help='scan input data for sanity check', action='store_true')
@@ -204,6 +219,7 @@ if __name__ == "__main__":
 	if args.compact:
 		# CURRENTLY, NO SUPPORT FOR MULTIPROCESSING IN COMPACT FILES
 		# CURRENTLY, NO SUPPORT FOR CADETS2 DATASETS
+		# CURRENTLY, NO SUPPORT FOR SPADE
 		if args.trace == 'cadets2' or args.trace == 'fivedirections':
 			raise NotImplementedError("no support for processing {} compact files at the moment".format(args.trace))
 
