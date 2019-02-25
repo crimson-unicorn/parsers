@@ -22,6 +22,26 @@ CDM_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm18.UnitDependency'
 # CDM UUID constant
 CDM_UUID = 'com.bbn.tc.schema.avro.cdm18.UUID'
 
+# CDM_19 record type constants
+CDM19_TYPE_EVENT = 'com.bbn.tc.schema.avro.cdm19.Event'
+CDM19_TYPE_FILE = 'com.bbn.tc.schema.avro.cdm19.FileObject'
+CDM19_TYPE_SOCK = 'com.bbn.tc.schema.avro.cdm19.NetFlowObject'
+CDM19_TYPE_SUBJECT = 'com.bbn.tc.schema.avro.cdm19.Subject'
+CDM19_TYPE_SRCSINK = 'com.bbn.tc.schema.avro.cdm19.SrcSinkObject'
+CDM19_TYPE_PIPE = 'com.bbn.tc.schema.avro.cdm19.UnnamedPipeObject'
+CDM19_TYPE_PRINCIPAL = 'com.bbn.tc.schema.avro.cdm19.Principal'
+CDM19_TYPE_TAG = 'com.bbn.tc.schema.avro.cdm19.ProvenanceTagNode'
+CDM19_TYPE_STARTMARKER = 'com.bbn.tc.schema.avro.cdm19.StartMarker'
+CDM19_TYPE_TIMEMARKER = 'com.bbn.tc.schema.avro.cdm19.TimeMarker'
+CDM19_TYPE_HOST = 'com.bbn.tc.schema.avro.cdm19.Host'
+CDM19_TYPE_KEY = 'com.bbn.tc.schema.avro.cdm19.RegistryKeyObject'
+CDM19_TYPE_MEMORY = 'com.bbn.tc.schema.avro.cdm19.MemoryObject'
+CDM19_TYPE_ENDMARKER = 'com.bbn.tc.schema.avro.cdm19.EndMarker'
+CDM19_TYPE_UNITDEPENDENCY = 'com.bbn.tc.schema.avro.cdm19.UnitDependency'
+
+# CDM_19 UUID constant
+CDM19_UUID = 'com.bbn.tc.schema.avro.cdm19.UUID'
+
 # Cadets-E2/FiveDirections record type constants
 CD2_TYPE_EVENT = 'Event'
 CD2_TYPE_FILE = 'FileObject'

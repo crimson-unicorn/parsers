@@ -126,6 +126,44 @@ def parsecd(parser, ds, desc):
 				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
 	pb.close()
 
+def parsesp(parser, ds, desc):
+	"""Parse SPADE (CDM19) trace data.
+	We store non-Event data (i.e., node) in a database.
+	The database is a key-value store where:
+	key - UUID of the data record
+	value - integer hash of attributes
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	ds - database system
+	desc - description of the process
+	"""		
+	logging.basicConfig(filename='parse-error-' + desc + '.log', level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)
+	procnum = 0
+	if desc.split('.')[-1].isdigit():
+		procnum = int(desc.split('.')[-1])
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=procnum)
+
+	for cdmrec in parser:
+		pb.update()
+
+		cdmrectype = cdmrec['datum'].keys()[0]
+		cdmrecval = cdmrec['datum'][cdmrectype]
+
+		if cdmrectype == CDM19_TYPE_EVENT:
+			pass
+
+		else:
+			try:
+				cdmkey = cdmrecval['uuid'].encode('utf-8')
+				cdmval = str(valgendp(cdmrectype, cdmrecval))
+				ds.put(cdmkey, cdmval)
+			except Exception as e:
+				logging.debug('Parsing ERROR (' + repr(e) + '): ' + repr(cdmrecval))
+	pb.close()
+
 def cgencf(parser, db, out):
 	"""Generate CamFlow outputs from compressed/single file.
 	"""
@@ -433,6 +471,67 @@ def cgencd(parser, db, out):
 			pass
 	return
 
+def cgensp(parser, db, out):
+	"""Generate SPADE outputs from compressed/single file.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	db - database
+	out - output file object
+	"""
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output'
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs")
+	for cdmrec in parser:
+		pb.update()
+		cdmrectype = cdmrec['datum'].keys()[0]
+		cdmrecval = cdmrec['datum'][cdmrectype]
+
+		if cdmrectype == CDM19_TYPE_EVENT:
+			if 'type' not in cdmrecval:
+				logging.debug('CDM19_TYPE_EVENT: type is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				edgetype = valgendp(cdmrectype, cdmrecval)
+
+			if 'timestampNanos' not in cdmrecval:
+				logging.debug('CDM19_TYPE_EVENT: timestamp is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				timestamp = cdmrecval['timestampNanos']
+
+			srcUUID, dstUUID, bidirection = processevent(cdmrecval, 'spade')
+
+			if srcUUID == None or dstUUID == None:
+				continue
+
+			srcVal = db.get(srcUUID.encode('utf-8'))
+			if srcVal == None:
+				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			dstVal = db.get(dstUUID.encode('utf-8'))
+			if dstVal == None:
+				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+			if bidirection:
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(dstVal) + ':' + str(srcVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+		else:
+			pass
+	return
+
 def gencf(parser, i, dbs, out):
 	"""Generate CamFlow outputs using a list of databases.
 
@@ -688,6 +787,70 @@ def gendp(parser, i, dbs, out):
 	pb.close()
 	return
 
+
+def gensp(parser, i, dbs, out):
+	"""Generate SPADE outputs using a list of databases.
+
+	Arguments:
+	parser - ijson parser that feeds JSON objects
+	i - the start index of the database list
+	dbs - a list of database
+	out - output file object
+	"""
+	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output from File \x1b[6;30;42m{}\x1b[0m'.format(i)
+	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=i)
+	for cdmrec in parser:
+		pb.update()
+		cdmrectype = cdmrec['datum'].keys()[0]
+		cdmrecval = cdmrec['datum'][cdmrectype]
+
+		if cdmrectype == CDM19_TYPE_EVENT:
+			if 'type' not in cdmrecval:
+				logging.debug('CDM19_TYPE_EVENT: type is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				edgetype = valgendp(cdmrectype, cdmrecval)
+
+			if 'timestampNanos' not in cdmrecval:
+				logging.debug('CDM19_TYPE_EVENT: timestamp is missing. Event UUID: ' + repr(cdmrecval['uuid']))
+				continue
+			else:
+				timestamp = cdmrecval['timestampNanos']
+
+			srcUUID, dstUUID, bidirection = processevent(cdmrecval, 'spade')
+
+			if srcUUID == None or dstUUID == None:
+				continue
+
+			srcVal = getfromdb(dbs, i, srcUUID)
+			if srcVal == None:
+				logging.error('An unmatched srcUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			dstVal = getfromdb(dbs, i, dstUUID)
+			if dstVal == None:
+				logging.error('An unmatched dstUUID from edge (' + repr(cdmrecval['uuid']) + ') of type: ' + cdmrecval['type'])
+				continue
+
+			out.write(str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
+			if bidirection:
+				out.write(str(hashgen([dstUUID.encode('utf-8')])) + '\t' \
+					+ str(hashgen([srcUUID.encode('utf-8')])) + '\t' \
+					+ str(dstVal) + ':' + str(srcVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+		else:
+			pass
+	pb.close()
+	return
+
 def gencd(parser, i, dbs, out):
 	"""Generate CADETS2/FiveDirections outputs using a list of databases.
 
@@ -846,7 +1009,7 @@ def processevent(cdmrecval, trace):
 			edgetype == 'EVENT_BLIND':
 		pass
 	else:
-		logging.error('CDM_TYPE_EVENT: event type is unexpected. Event UUID: ' + repr(cdmrecval['uuid']))
+		logging.error('CDM(19)_TYPE_EVENT/CD2: event type is unexpected. Event UUID: ' + repr(cdmrecval['uuid']))
 
 	return srcUUID, dstUUID, bidirection
 
@@ -864,20 +1027,24 @@ def subobjrel(cdmrecval, trace):
 	subj = cdmrecval['subject']
 	subjectUUID = None
 	if type(subj).__name__ == 'NoneType':
-		logging.debug("CDM_TYPE_EVENT: subject does not exist. Event UUID: " + repr(cdmrecval['uuid']))
+		logging.debug("CDM(19)_TYPE_EVENT/CD2: subject does not exist. Event UUID: " + repr(cdmrecval['uuid']))
 	else:
 		if trace == 'darpa':
 			subjectUUID = subj[CDM_UUID]
+		elif trace == 'spade':
+			subjectUUID = subj[CDM19_UUID]
 		elif trace == 'cadets2':
 			subjectUUID = subj[CD2_UUID]
 
 	obj = cdmrecval['predicateObject']
 	objectUUID = None
 	if type(obj).__name__ == 'NoneType':
-		logging.debug("CDM_TYPE_EVENT: object does not exist. Event UUID: " + repr(cdmrecval['uuid']))
+		logging.debug("CDM(19)_TYPE_EVENT/CD2: object does not exist. Event UUID: " + repr(cdmrecval['uuid']))
 	else:
 		if trace == 'darpa':
 			objectUUID = obj[CDM_UUID]
+		elif trace == 'spade':
+			objectUUID = obj[CDM19_UUID]
 		elif trace == 'cadets2':
 			objectUUID = obj[CD2_UUID]
 
@@ -896,27 +1063,31 @@ def objobjrel(cdmrecval, trace):
 	obj1 = cdmrecval['predicateObject']
 	objectUUID1 = None
 	if type(obj1).__name__ == 'NoneType':
-		logging.debug("CDM_TYPE_EVENT: object (1) does not exist. Event UUID: " + repr(cdmrecval['uuid']))
+		logging.debug("CDM(19)_TYPE_EVENT/CD2: object (1) does not exist. Event UUID: " + repr(cdmrecval['uuid']))
 	else:
 		if trace == 'darpa':
 			objectUUID1 = obj1[CDM_UUID]
+		elif trace == 'spade':
+			objectUUID1 = obj1[CDM19_UUID]
 		elif trace == 'cadets2':
 			objectUUID1 = obj1[CD2_UUID]
 
 	obj2 = cdmrecval['predicateObject2']
 	objectUUID2 = None
 	if type(obj2).__name__ == 'NoneType':
-		logging.debug("CDM_TYPE_EVENT: object (2) does not exist. Event UUID: " + repr(cdmrecval['uuid']))
+		logging.debug("CDM(19)_TYPE_EVENT/CD2: object (2) does not exist. Event UUID: " + repr(cdmrecval['uuid']))
 	else:
 		if trace == 'darpa':
 			objectUUID2 = obj2[CDM_UUID]
+		elif trace == 'spade':
+			objectUUID2 = obj2[CDM19_UUID]
 		elif trace == 'cadets2':
 			objectUUID2 = obj2[CD2_UUID]
 
 	return (objectUUID1, objectUUID2)
 
 def valgendp(cdmrectype, cdmrecval):
-	"""Generate a single value for a DARPA CDM/Cadets E2 record.
+	"""Generate a single value for a DARPA CDM/Cadets E2/SPADE CDM record.
 
 	Currently, only type information is used.
 
@@ -930,16 +1101,20 @@ def valgendp(cdmrectype, cdmrecval):
 	val = list()
 
 	if cdmrectype == CDM_TYPE_SOCK or \
-		cdmrectype == CD2_TYPE_SOCK:
+		cdmrectype == CD2_TYPE_SOCK or \
+		cdmrectype == CDM19_TYPE_SOCK:
 		val.append('NET_FLOW_OBJECT')
 	elif cdmrectype == CDM_TYPE_PIPE or \
-		cdmrectype == CD2_TYPE_PIPE:
+		cdmrectype == CD2_TYPE_PIPE or \
+		cdmrectype == CDM19_TYPE_PIPE:
 		val.append('UNNAMED_PIPE_OBJECT')
 	elif cdmrectype == CDM_TYPE_MEMORY or \
-		cdmrectype == CD2_TYPE_MEMORY:
+		cdmrectype == CD2_TYPE_MEMORY or \
+		cdmrectype == CDM19_TYPE_MEMORY:
 		val.append('MEMORY_OBJECT')
 	elif cdmrectype == CDM_TYPE_HOST or \
-		cdmrectype == CD2_TYPE_HOST:
+		cdmrectype == CD2_TYPE_HOST or \
+		cdmrectype == CDM19_TYPE_HOST:
 		val.append(cdmrecval['hostType'])
 	else:
 		val.append(cdmrecval['type'])
