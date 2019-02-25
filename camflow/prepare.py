@@ -4,43 +4,42 @@
 # data parser.
 ##############################################
 
-import sys
+import os, sys, argparse
 import json
 import logging
-import hashlib
+import xxhash
+import time
+import datetime
+import tqdm
 
-class Node:
-	def __init__(self, nid, ntype, secctx, mode, name):
-		self.nid = nid
-		self.ntype = ntype
-		self.secctx = secctx
-		self.mode = mode
-		self.name = name
+def hashgen(vlist):
+	"""Generate a single hash value from a list.
 
-	def getnid(self):
-		return self.nid
+	Arguments:
+	vlist - a list of string values, which can be properties of a node/edge.
 
-	def getntype(self):
-		return self.ntype
+	Return:
+	a single hashed integer value
+	"""
+	hasher = xxhash.xxh64()
+	for v in vlist:
+		hasher.update(v)
+	return hasher.intdigest()
 
-	def getsecctx(self):
-		return self.secctx
+def valgencf(cfrecval):
+	"""Generate a single value for a CamFlow record.
 
-	def getmode(self):
-		return self.mode
+	Currently, only type information is used.
 
-	def getname(self):
-		return self.name
+	Arguments:
+	cfrecval - CamFlow record
 
-def hashgen(hashstr):
-	hasher = hashlib.md5()
-	hasher.update(hashstr)
-	return hasher.hexdigest()
-
-def nodeidgen(hashstr):
-	hasher = hashlib.md5()
-	hasher.update(hashstr)
-	return int(hasher.hexdigest()[:8], 16) # make sure it is only 32 bits
+	Return:
+	a single integer value of the record
+	"""
+	val = list()
+	val.append(cfrecval["prov:type"])
+	return hashgen(val)
 
 def parse_nodes(json_string, node_map):
 	json_object = json.loads(json_string)
@@ -51,24 +50,9 @@ def parse_nodes(json_string, node_map):
 				logging.debug("The ID of the activity node shows up more than once: %s", uid)
 			else:
 				if "prov:type" not in activity[uid]:
-					logging.debug("Skipping a problematic activity node with no 'prov:type'. ID: %s", uid)	# A node must have a type.
+					logging.debug("Skipping a problematic activity node with no prov:type. UUID: %s", uid)	# A node must have a type.
 				else:
-					secctx = "N/A"
-					if "cf:secctx" in activity[uid]:
-						secctx = activity[uid]["cf:secctx"]
-					secctx = hashgen(secctx)
-
-					mode = "N/A"
-					if "cf:mode" in activity[uid]:
-						mode = activity[uid]["cf:mode"]
-					mode = hashgen(mode)
-
-					name = "N/A"
-					if "cf:name" in activity[uid]:
-						name = activity[uid]["cf:name"]
-					name = hashgen(name)
-
-					node_map[uid] = Node(nodeidgen(uid), hashgen(activity[uid]["prov:type"]), secctx, mode, name)
+					node_map[uid] = str(valgencf(activity[uid]))
 
 	if "entity" in json_object:
 		entity = json_object["entity"]
@@ -77,166 +61,321 @@ def parse_nodes(json_string, node_map):
 				logging.debug("The ID of the entity node shows up more than once: %s", uid)
 			else:
 				if "prov:type" not in entity[uid]:
-					logging.debug("Skipping a problematic entity node with no 'prov:type'. ID: %s", uid)
+					logging.debug("Skipping a problematic entity node with no prov:type. UUID: %s", uid)
 				else:
-					secctx = "N/A"
-					if "cf:secctx" in entity[uid]:
-						secctx = entity[uid]["cf:secctx"]
-					secctx = hashgen(secctx)
-
-					mode = "N/A"
-					if "cf:mode" in entity[uid]:
-						mode = entity[uid]["cf:mode"]
-					mode = hashgen(mode)
-
-					name = "N/A"
-					if "cf:name" in entity[uid]:
-						name = entity[uid]["cf:name"]
-					name = hashgen(name)
-
-					node_map[uid] = Node(nodeidgen(uid), hashgen(entity[uid]["prov:type"]), secctx, mode, name)
+					node_map[uid] = str(valgencf(entity[uid]))
 
 def parse_all_nodes(filename, node_map):
-	with open(filename) as f:
+	description = '\x1b[6;30;43m[i]\x1b[0m Node Parsing Progress of File: \x1b[6;30;42m{}\x1b[0m'.format(filename)
+	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
+	with open(filename, 'r') as f:
 		for line in f:
+			pb.update()
 			parse_nodes(line, node_map)
-		f.close()
+	f.close()
+	pb.close()
 
 def parse_all_edges(inputfile, outputfile, node_map):
 	"""
 	Parse all edges with the timestamp to a file.
 	Format: <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_timestamp>
 	"""
-	output = open(outputfile, "w+")
-	with open(inputfile) as f:
+	# Scan through the file to validate edges (i.e., both end nodes must exist) and find the smallest timestamp.
+	description = '\x1b[6;30;43m[i]\x1b[0m Edge Scanning Progress of File: \x1b[6;30;42m{}\x1b[0m'.format(inputfile)
+	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
+	total_edges = 0
+	smallest_timestamp = None
+	with open(inputfile, 'r') as f:
 		for line in f:
+			pb.update()
+			json_object = json.loads(line)
+
+			if "used" in json_object:
+				used = json_object["used"]
+				for uid in used:
+					if "prov:type" not in used[uid]:
+						logging.debug("Edge (used) record without type. UUID: %s", uid)
+						continue
+					if "cf:date" not in used[uid]:
+						logging.debug("Edge (used) record without date. UUID: %s", uid)
+						continue
+					if "prov:entity" not in used[uid]:
+						logging.debug("Edge (used/{}) record without srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
+						continue
+					if "prov:activity" not in used[uid]:
+						logging.debug("Edge (used/{}) record without dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
+						continue
+					srcUUID = used[uid]["prov:entity"]
+					dstUUID = used[uid]["prov:activity"]
+					if srcUUID not in node_map:
+						logging.debug("Edge (used/{}) record with an unmatched srcUUID. UUID: {}".format(used[uid]["prov:type"], uid))
+						continue
+					if dstUUID not in node_map:
+						logging.debug("Edge (used/{}) record with an unmatched dstUUID. UUID: {}".format(used[uid]["prov:type"], uid))
+						continue
+					total_edges += 1
+					timestamp_str = used[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
+			if "wasGeneratedBy" in json_object:
+				wasGeneratedBy = json_object["wasGeneratedBy"]
+				for uid in wasGeneratedBy:
+					if "prov:type" not in wasGeneratedBy[uid]:
+						logging.debug("Edge (wasGeneratedBy) record without type. UUID: %s", uid)
+						continue
+					if "cf:date" not in wasGeneratedBy[uid]:
+						logging.debug("Edge (wasGeneratedBy) record without date. UUID: %s", uid)
+						continue
+					if "prov:entity" not in wasGeneratedBy[uid]:
+						logging.debug("Edge (wasGeneratedBy/{}) record without srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
+						continue
+					if "prov:activity" not in wasGeneratedBy[uid]:
+						logging.debug("Edge (wasGeneratedBy/{}) record without dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
+						continue
+					srcUUID = wasGeneratedBy[uid]["prov:activity"]
+					dstUUID = wasGeneratedBy[uid]["prov:entity"]
+					if srcUUID not in node_map:
+						logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
+						continue
+					if dstUUID not in node_map:
+						logging.debug("Edge (wasGeneratedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasGeneratedBy[uid]["prov:type"], uid))
+						continue
+					total_edges += 1
+					timestamp_str = wasGeneratedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
+			if "wasInformedBy" in json_object:
+				wasInformedBy = json_object["wasInformedBy"]
+				for uid in wasInformedBy:
+					if "prov:type" not in wasInformedBy[uid]:
+						logging.debug("Edge (wasInformedBy) record without type. UUID: %s", uid)
+						continue
+					if "cf:date" not in wasInformedBy[uid]:
+						logging.debug("Edge (wasInformedBy) record without date. UUID: %s", uid)
+						continue
+					if "prov:informant" not in wasInformedBy[uid]:
+						logging.debug("Edge (wasInformedBy/{}) record without srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
+						continue
+					if "prov:informed" not in wasInformedBy[uid]:
+						logging.debug("Edge (wasInformedBy/{}) record without dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
+						continue
+					srcUUID = wasInformedBy[uid]["prov:informant"]
+					dstUUID = wasInformedBy[uid]["prov:informed"]
+					if srcUUID not in node_map:
+						logging.debug("Edge (wasInformedBy/{}) record with an unmatched srcUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
+						continue
+					if dstUUID not in node_map:
+						logging.debug("Edge (wasInformedBy/{}) record with an unmatched dstUUID. UUID: {}".format(wasInformedBy[uid]["prov:type"], uid))
+						continue
+					total_edges += 1
+					timestamp_str = wasInformedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
+			if "wasDerivedFrom" in json_object:
+				wasDerivedFrom = json_object["wasDerivedFrom"]
+				for uid in wasDerivedFrom:
+					if "prov:type" not in wasDerivedFrom[uid]:
+						logging.debug("Edge (wasDerivedFrom) record without type. UUID: %s", uid)
+						continue
+					if "cf:date" not in wasDerivedFrom[uid]:
+						logging.debug("Edge (wasDerivedFrom) record without date. UUID: %s", uid)
+						continue
+					if "prov:usedEntity" not in wasDerivedFrom[uid]:
+						logging.debug("Edge (wasDerivedFrom/{}) record without srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
+						continue
+					if "prov:generatedEntity" not in wasDerivedFrom[uid]:
+						logging.debug("Edge (wasDerivedFrom/{}) record without dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
+						continue
+					srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
+					dstUUID = wasDerivedFrom[uid]["prov:generatedEntity"]
+					if srcUUID not in node_map:
+						logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched srcUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
+						continue
+					if dstUUID not in node_map:
+						logging.debug("Edge (wasDerivedFrom/{}) record with an unmatched dstUUID. UUID: {}".format(wasDerivedFrom[uid]["prov:type"], uid))
+						continue
+					total_edges += 1
+					timestamp_str = wasDerivedFrom[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
+	f.close()
+	pb.close()
+
+	output = open(outputfile, "w+")
+	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output of File: \x1b[6;30;42m{}\x1b[0m'.format(inputfile)
+	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
+	with open(inputfile, 'r') as f:
+		for line in f:
+			pb.update()
 			json_object = json.loads(line)
 			
 			if "used" in json_object:
 				used = json_object["used"]
 				for uid in used:
-					from_id = used[uid]["prov:entity"]
-					to_id = used[uid]["prov:activity"]
-					if from_id not in node_map:
-						logging.debug("Skipping an edge in 'used' because we cannot find the source node. Node ID: %s", from_id)
+					if "prov:type" not in used[uid]:
 						continue
-					if to_id not in node_map:
-						logging.debug("Skipping an edge in 'used' because we cannot find the destination node. Node ID: %s", to_id)
+					else:
+						edgetype = valgencf(used[uid])
+					if "cf:id" not in used[uid]:
+						logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
 						continue
+					else:
+						timestamp = used[uid]["cf:id"]  # Can be used as timestamp
+					if "prov:entity" not in used[uid]:
+						continue
+					if "prov:activity" not in used[uid]:
+						continue
+					srcUUID = used[uid]["prov:entity"]
+					dstUUID = used[uid]["prov:activity"]
+					if srcUUID not in node_map:
+						continue
+					else:
+						srcVal = node_map[srcUUID]
+					if dstUUID not in node_map:
+						continue
+					else:
+						dstVal = node_map[dstUUID]
 
-					from_node = node_map[from_id]
-					from_type = hashgen(from_node.getntype() + from_node.getsecctx() + from_node.getmode() + from_node.getname())
+					ts_str = used[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = ts - smallest_timestamp
 
-					to_node = node_map[to_id]
-					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
-					
-					edge_id = used[uid]["cf:id"]	# Can be used as timestamp
-					
-					edge_flags = "N/A"
-					if "cf:flags" in used[uid]:
-						edge_flags = used[uid]["cf:flags"]
-					edge_flags = hashgen(edge_flags)
-					edge_type = hashgen(hashgen(used[uid]["prov:type"]) + edge_flags)
-
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
-			
+					output.write(str(hashgen([srcUUID])) + '\t' \
+						+ str(hashgen([dstUUID])) + '\t' \
+						+ str(srcVal) + ':' + str(dstVal) \
+						+ ':' + str(edgetype) + ':' + str(timestamp) \
+						+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
 				for uid in wasGeneratedBy:
-					from_id = wasGeneratedBy[uid]["prov:activity"]
-					to_id = wasGeneratedBy[uid]["prov:entity"]
-					if from_id not in node_map:
-						logging.debug("Skipping an edge in 'wasGeneratedBy' because we cannot find the source node. Node ID: %s", from_id)
+					if "prov:type" not in wasGeneratedBy[uid]:
 						continue
-					if to_id not in node_map:
-						logging.debug("Skipping an edge in 'wasGeneratedBy' because we cannot find the destination node. Node ID: %s", to_id)
+					else:
+						edgetype = valgencf(wasGeneratedBy[uid])
+					if "cf:id" not in wasGeneratedBy[uid]:
+						logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
 						continue
+					else:
+						timestamp = wasGeneratedBy[uid]["cf:id"]
+					if "prov:entity" not in wasGeneratedBy[uid]:
+						continue
+					if "prov:activity" not in wasGeneratedBy[uid]:
+						continue
+					srcUUID = wasGeneratedBy[uid]["prov:activity"]
+					dstUUID = wasGeneratedBy[uid]["prov:entity"]
+					if srcUUID not in node_map:
+						continue
+					else:
+						srcVal = node_map[srcUUID]
+					if dstUUID not in node_map:
+						continue
+					else:
+						dstVal = node_map[dstUUID]
 
-					from_node = node_map[from_id]
-					from_type = hashgen(from_node.getntype() + from_node.getsecctx() + from_node.getmode() + from_node.getname())
+					ts_str = wasGeneratedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = ts - smallest_timestamp
 
-					to_node = node_map[to_id]
-					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
-
-					edge_id = wasGeneratedBy[uid]["cf:id"]
-
-					edge_flags = "N/A"
-					if "cf:flags" in wasGeneratedBy[uid]:
-						edge_flags = wasGeneratedBy[uid]["cf:flags"]
-					edge_flags = hashgen(edge_flags)
-					edge_type = hashgen(hashgen(wasGeneratedBy[uid]["prov:type"]) + edge_flags)
-					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
-			
+					output.write(str(hashgen([srcUUID])) + '\t' \
+						+ str(hashgen([dstUUID])) + '\t' \
+						+ str(srcVal) + ':' + str(dstVal) \
+						+ ':' + str(edgetype) + ':' + str(timestamp) \
+						+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
 				for uid in wasInformedBy:
-					from_id = wasInformedBy[uid]["prov:informant"]
-					to_id = wasInformedBy[uid]["prov:informed"]
-					if from_id not in node_map:
-						logging.debug("Skipping an edge in 'wasInformedBy' because we cannot find the source node. Node ID: %s", from_id)
+					if "prov:type" not in wasInformedBy[uid]:
 						continue
-					if to_id not in node_map:
-						logging.debug("Skipping an edge in 'wasInformedBy' because we cannot find the destination node. Node ID: %s", to_id)
+					else:
+						edgetype = valgencf(wasInformedBy[uid])
+					if "cf:id" not in wasInformedBy[uid]:
+						logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
 						continue
+					else:
+						timestamp = wasInformedBy[uid]["cf:id"]
+					if "prov:informant" not in wasInformedBy[uid]:
+						continue
+					if "prov:informed" not in wasInformedBy[uid]:
+						continue
+					srcUUID = wasInformedBy[uid]["prov:informant"]
+					dstUUID = wasInformedBy[uid]["prov:informed"]
+					if srcUUID not in node_map:
+						continue
+					else:
+						srcVal = node_map[srcUUID]
+					if dstUUID not in node_map:
+						continue
+					else:
+						dstVal = node_map[dstUUID]
 
-					from_node = node_map[from_id]
-					from_type = hashgen(from_node.getntype() + from_node.getsecctx() + from_node.getmode() + from_node.getname())
+					ts_str = wasInformedBy[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = ts - smallest_timestamp
 
-					to_node = node_map[to_id]
-					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
-
-					edge_id = wasInformedBy[uid]["cf:id"]
-
-					edge_flags = "N/A"
-					if "cf:flags" in wasInformedBy[uid]:
-						edge_flags = wasInformedBy[uid]["cf:flags"]
-					edge_flags = hashgen(edge_flags)
-					edge_type = hashgen(hashgen(wasInformedBy[uid]["prov:type"]) + edge_flags)
-
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
-					
+					output.write(str(hashgen([srcUUID])) + '\t' \
+						+ str(hashgen([dstUUID])) + '\t' \
+						+ str(srcVal) + ':' + str(dstVal) \
+						+ ':' + str(edgetype) + ':' + str(timestamp) \
+						+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
 				for uid in wasDerivedFrom:
-					from_id = wasDerivedFrom[uid]["prov:usedEntity"]
-					to_id = wasDerivedFrom[uid]["prov:generatedEntity"]
-					if from_id not in node_map:
-						logging.debug("Skipping an edge in 'wasDerivedFrom' because we cannot find the source node. Node ID: %s", from_id)
+					if "prov:type" not in wasDerivedFrom[uid]:
 						continue
-					if to_id not in node_map:
-						logging.debug("Skipping an edge in 'wasDerivedFrom' because we cannot find the destination node. Node ID: %s", to_id)
+					else:
+						edgetype = valgencf(wasDerivedFrom[uid])
+					if "cf:id" not in wasDerivedFrom[uid]:
+						logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
 						continue
+					else:
+						timestamp = wasDerivedFrom[uid]["cf:id"]
+					if "prov:usedEntity" not in wasDerivedFrom[uid]:
+						continue
+					if "prov:generatedEntity" not in wasDerivedFrom[uid]:
+						continue
+					srcUUID = wasDerivedFrom[uid]["prov:usedEntity"]
+					dstUUID = wasDerivedFrom[uid]["prov:generatedEntity"]
+					if srcUUID not in node_map:
+						continue
+					else:
+						srcVal = node_map[srcUUID]
+					if dstUUID not in node_map:
+						continue
+					else:
+						dstVal = node_map[dstUUID]
 
-					from_node = node_map[from_id]
-					from_type = hashgen(from_node.getntype() + from_node.getsecctx() + from_node.getmode() + from_node.getname())
+					ts_str = wasDerivedFrom[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = ts - smallest_timestamp
 					
-					to_node = node_map[to_id]
-					to_type = hashgen(to_node.getntype() + to_node.getsecctx() + to_node.getmode() + to_node.getname())
-
-					edge_id = wasDerivedFrom[uid]["cf:id"]
-
-					edge_flags = "N/A"
-					if "cf:flags" in wasDerivedFrom[uid]:
-						edge_flags = wasDerivedFrom[uid]["cf:flags"]
-					edge_flags = hashgen(edge_flags)
-					edge_type = hashgen(hashgen(wasDerivedFrom[uid]["prov:type"]) + edge_flags)
-					
-					output.write(str(from_node.getnid()) + '\t' + str(to_node.getnid()) + '\t' + from_type + ':' + to_type + ':' + edge_type + ':' + edge_id + '\t' + '\n')
-	
+					output.write(str(hashgen([srcUUID])) + '\t' \
+						+ str(hashgen([dstUUID])) + '\t' \
+						+ str(srcVal) + ':' + str(dstVal) \
+						+ ':' + str(edgetype) + ':' + str(timestamp) \
+						+ ':' + str(adjusted_ts) + '\t' + '\n')
 	f.close()
 	output.close()
+	pb.close()
+	return total_edges
 
 
 if __name__ == "__main__":
-	if (len(sys.argv) < 3):
-		print("""
-			Usage: python prepare.py <input_file> <output_file_with_timestamp>
-		"""
-		)
-		sys.exit(1)
+	parser = argparse.ArgumentParser(description='Convert CamFlow JSON datasets to Unicorn edgelist datasets for runtime performance evaluation.')
+	parser.add_argument('-i', '--input', help='input data file path', required=True)
+	parser.add_argument('-o', '--output', help='output destination file path', required=True)
+	args = parser.parse_args()
+
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
 	node_map = {}
-	parse_all_nodes(sys.argv[1], node_map)
-	parse_all_edges(sys.argv[1], sys.argv[2], node_map)
+	parse_all_nodes(args.input, node_map)
+	total_edges = parse_all_edges(args.input, args.output, node_map)
+
+	total_nodes = len(node_map)
+	stats = open("stats.csv", "a+")
+	stats_str = args.input + "," + str(total_nodes) + "," + str(total_edges) + "\n"
+	stats.write(stats_str)
