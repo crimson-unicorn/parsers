@@ -70,19 +70,31 @@ def read_single_graph(file_name):
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser()
 	parser.add_argument('-s', '--size', help='the interval to record time', required=True, type=int)
+	parser.add_argument('-b', '--bsize', help='the size of the base graph', type=int)
 	parser.add_argument('-i', '--input', help='input data file path', required=True)
-	parser.add_argument('-o', '--output', help='output destination file path', required=True)
+	parser.add_argument('-B', '--base', help='output destination file path of base graph', required=True)
+	parser.add_argument('-S', '--stream', help='output destination file path of stream graph', required=True)
 	args = parser.parse_args()
 
 	graph = read_single_graph(args.input)
+	
+	if args.bsize is not None:
+		base_graph_size = args.bsize
+	else:
+		base_graph_size = math.ceil(len(graph) * 0.1)	# default to 10% of the total edges in the graph
+	stream_graph_size = len(graph) - base_graph_size
 
-	outputfile = open(args.output, "w")
+	base_file = open(args.base, "w")
+	stream_file = open(args.stream, "w")
 
 	# For runtime performance eval.
 	ts_file = open("ts.txt", "w")
 	edge_cnt = 0
 	for num, edge in enumerate(graph):
-		outputfile.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + ":" + edge[5] + ":" + edge[6] + "\n")
+		if num < base_graph_size:
+			base_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[5] + "\n")
+		else:
+			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + ":" + edge[5] + ":" + edge[6] + "\n")
 		edge_cnt += 1
 		if edge_cnt == args.size:
 			ts_file.write(str(edge[6]) + '\n')
@@ -93,5 +105,6 @@ if __name__ == "__main__":
 
 	print "[success] processing of " + args.input + " is done. Data now can be accepted by the graph processing framework."
 	
-	outputfile.close()
+	base_file.close()
+	stream_file.close()
 	ts_file.close()
