@@ -12,6 +12,7 @@ import time
 import datetime
 import tqdm
 
+
 def hashgen(vlist):
 	"""Generate a single hash value from a list.
 
@@ -25,6 +26,7 @@ def hashgen(vlist):
 	for v in vlist:
 		hasher.update(v)
 	return hasher.intdigest()
+
 
 def valgencf(cfrecval):
 	"""Generate a single value for a CamFlow record.
@@ -40,6 +42,7 @@ def valgencf(cfrecval):
 	val = list()
 	val.append(cfrecval["prov:type"])
 	return hashgen(val)
+
 
 def parse_nodes(json_string, node_map):
 	json_object = json.loads(json_string)
@@ -65,6 +68,7 @@ def parse_nodes(json_string, node_map):
 				else:
 					node_map[uid] = str(valgencf(entity[uid]))
 
+
 def parse_all_nodes(filename, node_map):
 	description = '\x1b[6;30;43m[i]\x1b[0m Node Parsing Progress of File: \x1b[6;30;42m{}\x1b[0m'.format(filename)
 	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
@@ -75,7 +79,8 @@ def parse_all_nodes(filename, node_map):
 	f.close()
 	pb.close()
 
-def parse_all_edges(inputfile, outputfile, node_map):
+
+def parse_all_edges(inputfile, outputfile, node_map, noencode):
 	"""
 	Parse all edges with the timestamp to a file.
 	Format: <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_timestamp>
@@ -244,11 +249,18 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
 					adjusted_ts = ts - smallest_timestamp
 
-					output.write(str(hashgen([srcUUID])) + '\t' \
-						+ str(hashgen([dstUUID])) + '\t' \
-						+ str(srcVal) + ':' + str(dstVal) \
-						+ ':' + str(edgetype) + ':' + str(timestamp) \
-						+ ':' + str(adjusted_ts) + '\t' + '\n')
+					if noencode:
+						output.write(str(srcUUID) + '\t' \
+							+ str(dstUUID) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
+					else:
+						output.write(str(hashgen([srcUUID])) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasGeneratedBy" in json_object:
 				wasGeneratedBy = json_object["wasGeneratedBy"]
 				for uid in wasGeneratedBy:
@@ -280,11 +292,18 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
 					adjusted_ts = ts - smallest_timestamp
 
-					output.write(str(hashgen([srcUUID])) + '\t' \
-						+ str(hashgen([dstUUID])) + '\t' \
-						+ str(srcVal) + ':' + str(dstVal) \
-						+ ':' + str(edgetype) + ':' + str(timestamp) \
-						+ ':' + str(adjusted_ts) + '\t' + '\n')
+					if noencode:
+						output.write(str(srcUUID) + '\t' \
+							+ str(dstUUID) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
+					else:
+						output.write(str(hashgen([srcUUID])) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasInformedBy" in json_object:
 				wasInformedBy = json_object["wasInformedBy"]
 				for uid in wasInformedBy:
@@ -316,11 +335,18 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
 					adjusted_ts = ts - smallest_timestamp
 
-					output.write(str(hashgen([srcUUID])) + '\t' \
-						+ str(hashgen([dstUUID])) + '\t' \
-						+ str(srcVal) + ':' + str(dstVal) \
-						+ ':' + str(edgetype) + ':' + str(timestamp) \
-						+ ':' + str(adjusted_ts) + '\t' + '\n')
+					if noencode:
+						output.write(str(srcUUID) + '\t' \
+							+ str(dstUUID) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
+					else:
+						output.write(str(hashgen([srcUUID])) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
 			if "wasDerivedFrom" in json_object:
 				wasDerivedFrom = json_object["wasDerivedFrom"]
 				for uid in wasDerivedFrom:
@@ -351,12 +377,19 @@ def parse_all_edges(inputfile, outputfile, node_map):
 					ts_str = wasDerivedFrom[uid]["cf:date"]
 					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
 					adjusted_ts = ts - smallest_timestamp
-					
-					output.write(str(hashgen([srcUUID])) + '\t' \
-						+ str(hashgen([dstUUID])) + '\t' \
-						+ str(srcVal) + ':' + str(dstVal) \
-						+ ':' + str(edgetype) + ':' + str(timestamp) \
-						+ ':' + str(adjusted_ts) + '\t' + '\n')
+
+					if noencode:
+						output.write(str(srcUUID) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
+					else:
+						output.write(str(hashgen([srcUUID])) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
 	f.close()
 	output.close()
 	pb.close()
@@ -367,13 +400,14 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert CamFlow JSON datasets to Unicorn edgelist datasets for runtime performance evaluation.')
 	parser.add_argument('-i', '--input', help='input data file path', required=True)
 	parser.add_argument('-o', '--output', help='output destination file path', required=True)
+	parser.add_argument('-n', '--noencode', help='do not encode UUID in output', action='store_true')
 	args = parser.parse_args()
 
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
 
 	node_map = {}
 	parse_all_nodes(args.input, node_map)
-	total_edges = parse_all_edges(args.input, args.output, node_map)
+	total_edges = parse_all_edges(args.input, args.output, node_map, args.noencode)
 
 	total_nodes = len(node_map)
 	stats = open("stats.csv", "a+")
