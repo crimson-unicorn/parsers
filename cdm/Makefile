@@ -145,7 +145,7 @@ fivedirections_e3:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 112 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/fivedirections-e3/edgelists_benign/fivedirections-e3-benign.txt.$$number -b ../../../data/fivedirections-e3/train/base/base-fivedirections-e3-benign-$$number.txt -s ../../../data/fivedirections-e3/train/stream/stream-fivedirections-e3-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/fivedirections-e3/edgelists_benign/fivedirections-e3-benign.txt.$$number -b ../../../data/fivedirections-e3/train/base/base-fivedirections-e3-benign-$$number.txt -s ../../../data/fivedirections-e3/train/stream/stream-fivedirections-e3-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	cd ../../../data/fivedirections-e3/attack && mkdir fivedirections-e3-official && tar zxvf fivedirections-e3-official.gz.tar -C fivedirections-e3-official && mv fivedirections-e3-official/fivedirections-e3-attack.txt.0 ../edgelists_attack
@@ -158,7 +158,7 @@ fivedirections_e3:
 	cd ../../../data/fivedirections-e3/attack && mkdir fivedirections-e3-official-3 && tar zxvf fivedirections-e3-official-3.gz.tar -C fivedirections-e3-official-3 && mv fivedirections-e3-official-3/fivedirections-e3-attack.txt.54 ../edgelists_attack
 	cd ../../../data/fivedirections-e3/attack && rm -f fivedirections-e3-official-3.gz.tar && rm -rf fivedirections-e3-official-3
 	number=0 ; while [ $$number -le 54 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/fivedirections-e3/edgelists_attack/fivedirections-e3-attack.txt.$$number -b ../../../data/fivedirections-e3/test/base/base-fivedirections-e3-attack-$$number.txt -s ../../../data/fivedirections-e3/test/stream/stream-fivedirections-e3-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/fivedirections-e3/edgelists_attack/fivedirections-e3-attack.txt.$$number -b ../../../data/fivedirections-e3/test/base/base-fivedirections-e3-attack-$$number.txt -s ../../../data/fivedirections-e3/test/stream/stream-fivedirections-e3-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 
