@@ -226,3 +226,23 @@ spade_apt:
 		python ProvParser/provparser/up.py -v -m -S 1000 -i ../../../data/spade-wget-apt/edgelists_attack/spade-attack.txt.$$number -b ../../../data/spade-wget-apt/test/base/base-spade-attack-$$number.txt -s ../../../data/spade-wget-apt/test/stream/stream-spade-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+
+camflow_shellshock:
+	number=0 ; while [ $$number -le 12 ] ; do \
+		cd ../../../data/shellshock-apt/benign && mkdir camflow-benign-$$number && tar zxvf camflow-benign-$$number.gz.tar -C camflow-benign-$$number && mv camflow-benign-$$number/camflow-normal.txt.* ../edgelists_benign ; \
+		cd ../../../data/shellshock-apt/benign && rm -f camflow-benign-$$number.gz.tar && rm -rf camflow-benign-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 124 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/shellshock-apt/edgelists_benign/camflow-normal.txt.$$number -b ../../../data/shellshock-apt/train/base/base-shellshock-benign-$$number.txt -s ../../../data/shellshock-apt/train/stream/stream-shellshock-benign-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 2 ] ; do \
+		cd ../../../data/shellshock-apt/attack && mkdir camflow-attack-$$number && tar zxvf camflow-attack-$$number.gz.tar -C camflow-attack-$$number && mv camflow-attack-$$number/camflow-attack.txt.* ../edgelists_attack ; \
+		cd ../../../data/shellshock-apt/attack && rm -f camflow-attack-$$number.gz.tar && rm -rf camflow-attack-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/shellshock-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/shellshock-apt/test/base/base-shellshock-attack-$$number.txt -s ../../../data/shellshock-apt/test/stream/stream-shellshock-attack-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
