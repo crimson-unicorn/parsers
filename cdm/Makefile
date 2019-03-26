@@ -234,7 +234,7 @@ camflow_shellshock:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 124 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/shellshock-apt/edgelists_benign/camflow-normal.txt.$$number -b ../../../data/shellshock-apt/train/base/base-shellshock-benign-$$number.txt -s ../../../data/shellshock-apt/train/stream/stream-shellshock-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 3500 -i ../../../data/shellshock-apt/edgelists_benign/camflow-normal.txt.$$number -b ../../../data/shellshock-apt/train/base/base-shellshock-benign-$$number.txt -s ../../../data/shellshock-apt/train/stream/stream-shellshock-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 2 ] ; do \
@@ -243,6 +243,6 @@ camflow_shellshock:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 24 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/shellshock-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/shellshock-apt/test/base/base-shellshock-attack-$$number.txt -s ../../../data/shellshock-apt/test/stream/stream-shellshock-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 3500 -i ../../../data/shellshock-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/shellshock-apt/test/base/base-shellshock-attack-$$number.txt -s ../../../data/shellshock-apt/test/stream/stream-shellshock-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
