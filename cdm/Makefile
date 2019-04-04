@@ -246,3 +246,23 @@ camflow_shellshock:
 		python ProvParser/provparser/up.py -v -m -S 1000 -i ../../../data/shellshock-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/shellshock-apt/test/base/base-shellshock-attack-$$number.txt -s ../../../data/shellshock-apt/test/stream/stream-shellshock-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+
+tune_camflow_apt:
+	number=0 ; while [ $$number -le 1 ] ; do \
+		cd ../../../data/camflow-apt/benign && mkdir camflow-benign-$$number && tar zxvf camflow-benign-$$number.gz.tar -C camflow-benign-$$number && mv camflow-benign-$$number/camflow-benign.txt.* ../edgelists_benign ; \
+		cd ../../../data/camflow-apt/benign && rm -f camflow-benign-$$number.gz.tar && rm -rf camflow-benign-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 19 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/camflow-apt/edgelists_benign/camflow-benign.txt.$$number -b ../../../data/camflow-apt/train/base/base-camflow-benign-$$number.txt -s ../../../data/camflow-apt/train/stream/stream-camflow-benign-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 0 ] ; do \
+		cd ../../../data/camflow-apt/attack && mkdir camflow-attack-$$number && tar zxvf camflow-attack-$$number.gz.tar -C camflow-attack-$$number && mv camflow-attack-$$number/camflow-attack.txt.* ../edgelists_attack ; \
+		cd ../../../data/camflow-apt/attack && rm -f camflow-attack-$$number.gz.tar && rm -rf camflow-attack-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 4 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/camflow-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/camflow-apt/test/base/base-camflow-attack-$$number.txt -s ../../../data/camflow-apt/test/stream/stream-camflow-attack-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
