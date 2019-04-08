@@ -113,6 +113,6 @@ if __name__ == "__main__":
 	sf.close()
 	if args.information:
 		stats = open("stats.txt", "a+")
-		stats.write(nid + '\t' + cnt + '\n')
+		stats.write(str(nid) + '\t' + str(cnt) + '\n')
 		stats.close()
 	print("\x1b[6;30;42m\n[success]\x1b[0m  processing of {} is done. Data now can be accepted by the graph processing framework.".format(args.input))
