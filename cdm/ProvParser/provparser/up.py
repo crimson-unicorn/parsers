@@ -11,7 +11,7 @@ if __name__ == "__main__":
 	parser.add_argument('-i', '--input', help='input file path', required=True)
 	parser.add_argument('-b', '--base', help='base output file path', required=True)
 	parser.add_argument('-s', '--stream', help='stream output file path', required=True)
-	parser.add_argument('-I', '--information,' help='print out the graph statistics', action='store_true', required=False)
+	parser.add_argument('-I', '--information', help='print out the graph statistics', action='store_true', required=False)
 	global args
 	args = parser.parse_args()
 
