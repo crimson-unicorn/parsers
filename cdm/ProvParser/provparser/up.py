@@ -11,7 +11,7 @@ if __name__ == "__main__":
 	parser.add_argument('-i', '--input', help='input file path', required=True)
 	parser.add_argument('-b', '--base', help='base output file path', required=True)
 	parser.add_argument('-s', '--stream', help='stream output file path', required=True)
-	parser.add_argument('-I', '--information', help='print out the graph statistics', action='store_true', required=False)
+	parser.add_argument('-I', '--information', help='print out the graph statistics to stats.txt', action='store_true', required=False)
 	global args
 	args = parser.parse_args()
 
@@ -112,5 +112,7 @@ if __name__ == "__main__":
 	bf.close()
 	sf.close()
 	if args.information:
-		print("\x1b[6;30;42m\n[i]\x1b[0m  # of nodes: {}, # of edges: {}".format(nid, cnt))
+		stats = open("stats.txt", "a+")
+		stats.write(nid + '\t' + cnt + '\n')
+		stats.close()
 	print("\x1b[6;30;42m\n[success]\x1b[0m  processing of {} is done. Data now can be accepted by the graph processing framework.".format(args.input))
