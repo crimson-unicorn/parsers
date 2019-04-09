@@ -142,8 +142,8 @@ def parsesp(parser, ds, desc):
 
 	description = '\x1b[6;30;43m[i]\x1b[0mProgress of File \x1b[6;30;42m{}\x1b[0m'.format(desc)
 	procnum = 0
-	if desc.split('.')[-1].isdigit():
-		procnum = int(desc.split('.')[-1])
+	if desc.split('.')[0].split('-')[-1].isdigit():
+		procnum = int(desc.split('.')[0].split('-')[-1]) % 10
 	pb = tqdm.tqdm(desc=description, mininterval=5.0, unit="recs", position=procnum)
 
 	for cdmrec in parser:
@@ -182,7 +182,7 @@ def cgencf(parser, db, out):
 					logging.debug("Edge (used) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(used[uid])
+					edgetype = valgencfe(used[uid])
 
 				if "cf:id" not in used[uid]:	# Can be used as timestamp
 					logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
@@ -224,7 +224,7 @@ def cgencf(parser, db, out):
 					logging.debug("Edge (wasGeneratedBy) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasGeneratedBy[uid])
+					edgetype = valgencfe(wasGeneratedBy[uid])
 
 				if "cf:id" not in wasGeneratedBy[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
@@ -266,7 +266,7 @@ def cgencf(parser, db, out):
 					logging.debug("Edge (wasInformedBy) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasInformedBy[uid])
+					edgetype = valgencfe(wasInformedBy[uid])
 
 				if "cf:id" not in wasInformedBy[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
@@ -308,7 +308,7 @@ def cgencf(parser, db, out):
 					logging.debug("Edge (wasDerivedFrom) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasDerivedFrom[uid])
+					edgetype = valgencfe(wasDerivedFrom[uid])
 
 				if "cf:id" not in wasDerivedFrom[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
@@ -342,7 +342,49 @@ def cgencf(parser, db, out):
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
-				
+
+		if "wasAssociatedWith" in cfrec:
+			wasAssociatedWith = cfrec["wasAssociatedWith"]
+			for uid in wasAssociatedWith:
+				if "prov:type" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencfe(wasAssociatedWith[uid])
+
+				if "cf:id" not in wasAssociatedWith[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasAssociatedWith) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasAssociatedWith[uid]["cf:id"]
+
+				if "prov:agent" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith/{}) record without srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				if "prov:activity" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith/{}) record without dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				srcUUID = wasAssociatedWith[uid]["prov:agent"]
+				dstUUID = wasAssociatedWith[uid]["prov:activity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
+
 	pb.close()
 	return
 
@@ -559,7 +601,7 @@ def gencf(parser, i, dbs, out):
 					logging.debug("Edge (used) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(used[uid])
+					edgetype = valgencfe(used[uid])
 
 				if "cf:id" not in used[uid]:	# Can be used as timestamp
 					logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
@@ -601,7 +643,7 @@ def gencf(parser, i, dbs, out):
 					logging.debug("Edge (wasGeneratedBy) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasGeneratedBy[uid])
+					edgetype = valgencfe(wasGeneratedBy[uid])
 
 				if "cf:id" not in wasGeneratedBy[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
@@ -643,7 +685,7 @@ def gencf(parser, i, dbs, out):
 					logging.debug("Edge (wasInformedBy) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasInformedBy[uid])
+					edgetype = valgencfe(wasInformedBy[uid])
 
 				if "cf:id" not in wasInformedBy[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
@@ -685,7 +727,7 @@ def gencf(parser, i, dbs, out):
 					logging.debug("Edge (wasDerivedFrom) record without type. UUID: %s", uid)
 					continue
 				else:
-					edgetype = valgencf(wasDerivedFrom[uid])
+					edgetype = valgencfe(wasDerivedFrom[uid])
 
 				if "cf:id" not in wasDerivedFrom[uid]:	# Can be used as timestamp
 					logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
@@ -719,7 +761,48 @@ def gencf(parser, i, dbs, out):
 					+ str(srcVal) + ':' + str(dstVal) \
 					+ ':' + str(edgetype) \
 					+ ':' + str(timestamp) + '\t' + '\n')
-				
+		
+		if "wasAssociatedWith" in cfrec:
+			wasAssociatedWith = cfrec["wasAssociatedWith"]
+			for uid in wasAssociatedWith:
+				if "prov:type" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith) record without type. UUID: %s", uid)
+					continue
+				else:
+					edgetype = valgencfe(wasAssociatedWith[uid])
+
+				if "cf:id" not in wasAssociatedWith[uid]:	# Can be used as timestamp
+					logging.debug("Edge (wasAssociatedWith) record without timestamp. UUID: %s", uid)
+					continue
+				else:
+					timestamp = wasAssociatedWith[uid]["cf:id"]
+
+				if "prov:agent" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith/{}) record without srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				if "prov:activity" not in wasAssociatedWith[uid]:
+					logging.debug("Edge (wasAssociatedWith/{}) record without dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				srcUUID = wasAssociatedWith[uid]["prov:agent"]
+				dstUUID = wasAssociatedWith[uid]["prov:activity"]
+
+				srcVal = db.get(srcUUID)
+				if srcVal == None:
+					logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				dstVal = db.get(dstUUID)
+				if dstVal == None:
+					logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+					continue
+
+				out.write(str(hashgen([srcUUID])) + '\t' \
+					+ str(hashgen([dstUUID])) + '\t' \
+					+ str(srcVal) + ':' + str(dstVal) \
+					+ ':' + str(edgetype) \
+					+ ':' + str(timestamp) + '\t' + '\n')
 	pb.close()
 	return
 
@@ -1122,9 +1205,9 @@ def valgendp(cdmrectype, cdmrecval):
 	return hashgen(val)
 
 def valgencf(cfrecval):
-	"""Generate a single value for a CamFlow record.
+	"""Generate a single value for a CamFlow record (node).
 
-	Currently, only type information is used.
+	Currently, type information, SELinux security context, mode, and name are used.
 
 	Arguments:
 	cfrecval - CamFlow record
@@ -1134,4 +1217,35 @@ def valgencf(cfrecval):
 	"""
 	val = list()
 	val.append(cfrecval["prov:type"])
+	if "cf:secctx" in cfrecval:
+		val.append(cfrecval["cf:secctx"])
+	else:
+		val.append("N/A")
+	if "cf:mode" in cfrecval:
+		val.append(cfrecval["cf:mode"])
+	else:
+		val.append("N/A")
+	if "cf:name" in cfrecval:
+		val.append(cfrecval["cf:name"])
+	else:
+		val.append("N/A")
+	return hashgen(val)
+
+def valgencfe(cfrecval):
+	"""Generate a single value for a CamFlow record (edge).
+
+	Currently, type information and flags are used.
+
+	Arguments:
+	cfrecval - CamFlow record
+
+	Return:
+	a single integer value of the record
+	"""
+	val = list()
+	val.append(cfrecval["prov:type"])
+	if "cf:flags" in cfrecval:
+		val.append(cfrecval["cf:flags"])
+	else:
+		val.append("N/A")
 	return hashgen(val)
