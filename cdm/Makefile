@@ -207,6 +207,26 @@ camflow_apt:
 		number=`expr $$number + 1` ; \
 	done
 
+camflow_apt_subset:
+	number=0 ; while [ $$number -le 12 ] ; do \
+		cd ../../../data/camflow-apt/benign && mkdir camflow-benign-$$number && tar zxvf camflow-benign-$$number.gz.tar -C camflow-benign-$$number && mv camflow-benign-$$number/camflow-benign.txt.* ../edgelists_benign ; \
+		cd ../../../data/camflow-apt/benign && rm -f camflow-benign-$$number.gz.tar && rm -rf camflow-benign-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 124 ] ; do \
+		python ProvParser/provparser/up.py -v -m -i ../../../data/camflow-apt/edgelists_benign/camflow-benign.txt.$$number -b ../../../data/camflow-apt/train/base/base-camflow-benign-$$number.txt -s ../../../data/camflow-apt/train/stream/stream-camflow-benign-$$number.txt ; \
+		number=`expr $$number + 4` ; \
+	done
+	number=0 ; while [ $$number -le 2 ] ; do \
+		cd ../../../data/camflow-apt/attack && mkdir camflow-attack-$$number && tar zxvf camflow-attack-$$number.gz.tar -C camflow-attack-$$number && mv camflow-attack-$$number/camflow-attack.txt.* ../edgelists_attack ; \
+		cd ../../../data/camflow-apt/attack && rm -f camflow-attack-$$number.gz.tar && rm -rf camflow-attack-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python ProvParser/provparser/up.py -v -m -i ../../../data/camflow-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/camflow-apt/test/base/base-camflow-attack-$$number.txt -s ../../../data/camflow-apt/test/stream/stream-camflow-attack-$$number.txt ; \
+		number=`expr $$number + 5` ; \
+	done
+
 spade_apt:
 	number=0 ; while [ $$number -le 12 ] ; do \
 		cd ../../../data/spade-wget-apt/benign && mkdir spade-benign-$$number && tar zxvf spade-benign-$$number.gz.tar -C spade-benign-$$number && mv spade-benign-$$number/spade-benign.txt.* ../edgelists_benign ; \
