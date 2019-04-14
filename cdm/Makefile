@@ -274,7 +274,7 @@ tune_camflow_apt:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 19 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/camflow-apt/edgelists_benign/camflow-benign.txt.$$number -b ../../../data/camflow-apt/train/base/base-camflow-benign-$$number.txt -s ../../../data/camflow-apt/train/stream/stream-camflow-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 3000 -i ../../../data/camflow-apt/edgelists_benign/camflow-benign.txt.$$number -b ../../../data/camflow-apt/train/base/base-camflow-benign-$$number.txt -s ../../../data/camflow-apt/train/stream/stream-camflow-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 0 ] ; do \
@@ -283,6 +283,6 @@ tune_camflow_apt:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 4 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/camflow-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/camflow-apt/test/base/base-camflow-attack-$$number.txt -s ../../../data/camflow-apt/test/stream/stream-camflow-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 3000 -i ../../../data/camflow-apt/edgelists_attack/camflow-attack.txt.$$number -b ../../../data/camflow-apt/test/base/base-camflow-attack-$$number.txt -s ../../../data/camflow-apt/test/stream/stream-camflow-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
