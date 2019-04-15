@@ -247,6 +247,26 @@ spade_apt:
 		number=`expr $$number + 1` ; \
 	done
 
+spade_apt_subset:
+	number=0 ; while [ $$number -le 12 ] ; do \
+		cd ../../../data/spade-wget-apt/benign && mkdir spade-benign-$$number && tar zxvf spade-benign-$$number.gz.tar -C spade-benign-$$number && mv spade-benign-$$number/spade-benign.txt.* ../edgelists_benign ; \
+		cd ../../../data/spade-wget-apt/benign && rm -f spade-benign-$$number.gz.tar && rm -rf spade-benign-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 124 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 1000 -i ../../../data/spade-wget-apt/edgelists_benign/spade-benign.txt.$$number -b ../../../data/spade-wget-apt/train/base/base-spade-benign-$$number.txt -s ../../../data/spade-wget-apt/train/stream/stream-spade-benign-$$number.txt ; \
+		number=`expr $$number + 4` ; \
+	done
+	number=0 ; while [ $$number -le 2 ] ; do \
+		cd ../../../data/spade-wget-apt/attack && mkdir spade-attack-$$number && tar zxvf spade-attack-$$number.gz.tar -C spade-attack-$$number && mv spade-attack-$$number/spade-attack.txt.* ../edgelists_attack ; \
+		cd ../../../data/spade-wget-apt/attack && rm -f spade-attack-$$number.gz.tar && rm -rf spade-attack-$$number ; \
+		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python ProvParser/provparser/up.py -v -m -S 1000 -i ../../../data/spade-wget-apt/edgelists_attack/spade-attack.txt.$$number -b ../../../data/spade-wget-apt/test/base/base-spade-attack-$$number.txt -s ../../../data/spade-wget-apt/test/stream/stream-spade-attack-$$number.txt ; \
+		number=`expr $$number + 5` ; \
+	done
+
 camflow_shellshock:
 	number=0 ; while [ $$number -le 12 ] ; do \
 		cd ../../../data/shellshock-apt/benign && mkdir camflow-benign-$$number && tar zxvf camflow-benign-$$number.gz.tar -C camflow-benign-$$number && mv camflow-benign-$$number/camflow-normal.txt.* ../edgelists_benign ; \
