@@ -89,6 +89,8 @@ if __name__ == "__main__":
 
 	# For runtime performance eval.
 	ts_file = open("ts.txt", "w")
+	# We use this flag to make sure we record the time it takes to create base graph only once.
+	recorded_once = False
 	edge_cnt = 0
 	for num, edge in enumerate(graph):
 		if num < base_graph_size:
@@ -96,6 +98,10 @@ if __name__ == "__main__":
 		else:
 			stream_file.write(str(edge[0]) + " " + str(edge[1]) + " " + edge[2] + ":" + edge[3] + ":" + edge[4] + ":" + edge[7] + ":" + edge[8] + ":" + edge[5] + ":" + edge[6] + "\n")
 		edge_cnt += 1
+		if not recorded_once and edge_cnt == base_graph_size:
+			ts_file.write(str(edge[6]) + '\n')
+			edge_cnt = 0
+			recorded_once = True
 		if edge_cnt == args.size:
 			ts_file.write(str(edge[6]) + '\n')
 			edge_cnt = 0
