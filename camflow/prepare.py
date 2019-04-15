@@ -29,9 +29,9 @@ def hashgen(vlist):
 
 
 def valgencf(cfrecval):
-	"""Generate a single value for a CamFlow record.
+	"""Generate a single value for a CamFlow record (node).
 
-	Currently, only type information is used.
+	Currently, type information, SELinux security context, mode, and name are used.
 
 	Arguments:
 	cfrecval - CamFlow record
@@ -41,7 +41,40 @@ def valgencf(cfrecval):
 	"""
 	val = list()
 	val.append(cfrecval["prov:type"])
+	if "cf:secctx" in cfrecval:
+		val.append(cfrecval["cf:secctx"])
+	else:
+		val.append("N/A")
+	if "cf:mode" in cfrecval:
+		val.append(cfrecval["cf:mode"])
+	else:
+		val.append("N/A")
+	if "cf:name" in cfrecval:
+		val.append(cfrecval["cf:name"])
+	else:
+		val.append("N/A")
 	return hashgen(val)
+
+
+def valgencfe(cfrecval):
+	"""Generate a single value for a CamFlow record (edge).
+
+	Currently, type information and flags are used.
+
+	Arguments:
+	cfrecval - CamFlow record
+
+	Return:
+	a single integer value of the record
+	"""
+	val = list()
+	val.append(cfrecval["prov:type"])
+	if "cf:flags" in cfrecval:
+		val.append(cfrecval["cf:flags"])
+	else:
+		val.append("N/A")
+	return hashgen(val)
+
 
 
 def parse_nodes(json_string, node_map):
@@ -204,6 +237,34 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 						continue
 					total_edges += 1
 					timestamp_str = wasDerivedFrom[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					if smallest_timestamp == None or ts < smallest_timestamp:
+						smallest_timestamp = ts
+			if "wasAssociatedWith" in json_object:
+				wasAssociatedWith = json_object["wasAssociatedWith"]
+				for uid in wasAssociatedWith:
+					if "prov:type" not in wasAssociatedWith[uid]:
+						logging.debug("Edge (wasAssociatedWith) record without type. UUID: %s", uid)
+						continue
+					if "cf:date" not in wasAssociatedWith[uid]:
+						logging.debug("Edge (wasAssociatedWith) record without date. UUID: %s", uid)
+						continue
+					if "prov:agent" not in wasAssociatedWith[uid]:
+						logging.debug("Edge (wasAssociatedWith/{}) record without srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+						continue
+					if "prov:activity" not in wasAssociatedWith[uid]:
+						logging.debug("Edge (wasAssociatedWith/{}) record without dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+						continue
+					srcUUID = wasAssociatedWith[uid]["prov:agent"]
+					dstUUID = wasAssociatedWith[uid]["prov:activity"]
+					if srcUUID not in node_map:
+						logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched srcUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+						continue
+					if dstUUID not in node_map:
+						logging.debug("Edge (wasAssociatedWith/{}) record with an unmatched dstUUID. UUID: {}".format(wasAssociatedWith[uid]["prov:type"], uid))
+						continue
+					total_edges += 1
+					timestamp_str = wasAssociatedWith[uid]["cf:date"]
 					ts = time.mktime(datetime.datetime.strptime(timestamp_str, "%Y:%m:%dT%H:%M:%S").timetuple())
 					if smallest_timestamp == None or ts < smallest_timestamp:
 						smallest_timestamp = ts
