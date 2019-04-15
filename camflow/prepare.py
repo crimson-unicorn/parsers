@@ -451,6 +451,49 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 							+ str(srcVal) + ':' + str(dstVal) \
 							+ ':' + str(edgetype) + ':' + str(timestamp) \
 							+ ':' + str(adjusted_ts) + '\t' + '\n')
+			if "wasAssociatedWith" in json_object:
+				wasAssociatedWith = json_object["wasAssociatedWith"]
+				for uid in wasAssociatedWith:
+					if "prov:type" not in wasAssociatedWith[uid]:
+						continue
+					else:
+						edgetype = valgencfe(wasAssociatedWith[uid])
+					if "cf:id" not in wasAssociatedWith[uid]:
+						logging.debug("Edge (wasAssociatedWith) record without timestamp. UUID: %s", uid)
+						continue
+					else:
+						timestamp = wasAssociatedWith[uid]["cf:id"]
+					if "prov:agent" not in wasAssociatedWith[uid]:
+						continue
+					if "prov:activity" not in wasAssociatedWith[uid]:
+						continue
+					srcUUID = wasAssociatedWith[uid]["prov:agent"]
+					dstUUID = wasAssociatedWith[uid]["prov:activity"]
+					if srcUUID not in node_map:
+						continue
+					else:
+						srcVal = node_map[srcUUID]
+					if dstUUID not in node_map:
+						continue
+					else:
+						dstVal = node_map[dstUUID]
+
+					ts_str = wasAssociatedWith[uid]["cf:date"]
+					ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
+					adjusted_ts = ts - smallest_timestamp
+
+					if noencode:
+						output.write(str(srcUUID) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
+					else:
+						output.write(str(hashgen([srcUUID])) + '\t' \
+							+ str(hashgen([dstUUID])) + '\t' \
+							+ str(srcVal) + ':' + str(dstVal) \
+							+ ':' + str(edgetype) + ':' + str(timestamp) \
+							+ ':' + str(adjusted_ts) + '\t' + '\n')
 	f.close()
 	output.close()
 	pb.close()
