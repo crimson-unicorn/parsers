@@ -7,6 +7,6 @@ eval_camflow_apt:
 	number=0 ; while [ $$number -le 0 ] ; do \
 		python prepare.py -i ../../../data/camflow-apt/edgelists_benign/camflow-benign.txt.$$number -o camflow-benign-$$number.txt ; \
 		python parse.py -s $(INTERVAL) -b $(WINDOW) -i camflow-benign-$$number.txt -B ../../../data/camflow-apt/train/base/base-camflow-benign-$$number.txt -S ../../../data/camflow-apt/train/stream/stream-camflow-benign-$$number.txt ; \
-		mv ts.txt ts-w-$(WINDOW)-i-$(INTERVAL).txt ; \
+		mv ts.txt ../../../output/ts-w-$(WINDOW)-i-$(INTERVAL).txt ; \
 		number=`expr $$number + 1` ; \
 	done
