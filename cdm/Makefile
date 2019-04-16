@@ -254,7 +254,7 @@ spade_apt_subset:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 124 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 2500 -i ../../../data/spade-wget-apt/edgelists_benign/spade-benign.txt.$$number -b ../../../data/spade-wget-apt/train/base/base-spade-benign-$$number.txt -s ../../../data/spade-wget-apt/train/stream/stream-spade-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 2750 -i ../../../data/spade-wget-apt/edgelists_benign/spade-benign.txt.$$number -b ../../../data/spade-wget-apt/train/base/base-spade-benign-$$number.txt -s ../../../data/spade-wget-apt/train/stream/stream-spade-benign-$$number.txt ; \
 		number=`expr $$number + 4` ; \
 	done
 	number=0 ; while [ $$number -le 2 ] ; do \
@@ -263,7 +263,7 @@ spade_apt_subset:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 24 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 2500 -i ../../../data/spade-wget-apt/edgelists_attack/spade-attack.txt.$$number -b ../../../data/spade-wget-apt/test/base/base-spade-attack-$$number.txt -s ../../../data/spade-wget-apt/test/stream/stream-spade-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 2750 -i ../../../data/spade-wget-apt/edgelists_attack/spade-attack.txt.$$number -b ../../../data/spade-wget-apt/test/base/base-spade-attack-$$number.txt -s ../../../data/spade-wget-apt/test/stream/stream-spade-attack-$$number.txt ; \
 		number=`expr $$number + 5` ; \
 	done
 
