@@ -78,7 +78,12 @@ def valgencfe(cfrecval):
 
 
 def parse_nodes(json_string, node_map):
-	json_object = json.loads(json_string)
+	try:
+		json_object = json.loads(json_string)
+	except Exception as e:
+		print(e)
+		print(json_string)
+		exit(1)
 	if "activity" in json_object:
 		activity = json_object["activity"]
 		for uid in activity:
