@@ -17,7 +17,7 @@ eval_camflow_apt:
 	done
 
 eval_camflow_extended_prepare:
-	cd ../../../data/camflow-extended-dataset && mkdir camflow-extended-dataset && tar -xf audit.tar.xz -C camflow-extended-dataset && mv camflow-extended-dataset/* edgelists_benign/
+	cd ../../../data/camflow-extended-dataset && mkdir camflow-extended-dataset && tar zxvf audit.tar.gz -C camflow-extended-dataset && mv camflow-extended-dataset/* edgelists_benign/
 	python prepare.py -i ../../../data/camflow-extended-dataset/edgelists_benign/audit.log -o audit.txt
 
 eval_camflow_extended:
