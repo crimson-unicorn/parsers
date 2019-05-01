@@ -169,7 +169,7 @@ clearscope_e3:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 43 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/clearscope-e3/edgelists_benign/clearscope-benign.txt.$$number -b ../../../data/clearscope-e3/train/base/base-clearscope-e3-benign-$$number.txt -s ../../../data/clearscope-e3/train/stream/stream-clearscope-e3-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/clearscope-e3/edgelists_benign/clearscope-benign.txt.$$number -b ../../../data/clearscope-e3/train/base/base-clearscope-e3-benign-$$number.txt -s ../../../data/clearscope-e3/train/stream/stream-clearscope-e3-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	cd ../../../data/clearscope-e3/attack && mkdir clearscope-e3-official && tar zxvf clearscope-e3-official.gz.tar -C clearscope-e3-official && mv clearscope-e3-official/clearscope-e3-attack.txt.* ../edgelists_attack
@@ -183,7 +183,7 @@ clearscope_e3:
 	cd ../../../data/clearscope-e3/attack && mkdir clearscope-e3-official-2-1 && tar zxvf clearscope-e3-official-2-1.gz.tar -C clearscope-e3-official-2-1 && mv clearscope-e3-official-2-1/clearscope-e3-attack.txt.* ../edgelists_attack
 	cd ../../../data/clearscope-e3/attack && rm -f clearscope-e3-official-2-1.gz.tar && rm -rf clearscope-e3-official-2-1
 	number=0 ; while [ $$number -le 50 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/clearscope-e3/edgelists_attack/clearscope-e3-attack.txt.$$number -b ../../../data/clearscope-e3/test/base/base-clearscope-e3-attack-$$number.txt -s ../../../data/clearscope-e3/test/stream/stream-clearscope-e3-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/clearscope-e3/edgelists_attack/clearscope-e3-attack.txt.$$number -b ../../../data/clearscope-e3/test/base/base-clearscope-e3-attack-$$number.txt -s ../../../data/clearscope-e3/test/stream/stream-clearscope-e3-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 
