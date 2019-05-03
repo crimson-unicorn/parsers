@@ -105,7 +105,7 @@ cadets_e3:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 65 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/cadets-e3/edgelists_benign/cadets-e3-benign.txt.$$number -b ../../../data/cadets-e3/train/base/base-cadets-e3-benign-$$number.txt -s ../../../data/cadets-e3/train/stream/stream-cadets-e3-benign-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/cadets-e3/edgelists_benign/cadets-e3-benign.txt.$$number -b ../../../data/cadets-e3/train/base/base-cadets-e3-benign-$$number.txt -s ../../../data/cadets-e3/train/stream/stream-cadets-e3-benign-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 2 ] ; do \
@@ -114,7 +114,7 @@ cadets_e3:
 		number=`expr $$number + 1` ; \
 	done
 	number=0 ; while [ $$number -le 7 ] ; do \
-		python ProvParser/provparser/up.py -v -m -S 5000 -i ../../../data/cadets-e3/edgelists_attack/cadets-e3-attack.txt.$$number -b ../../../data/cadets-e3/test/base/base-cadets-e3-attack-$$number.txt -s ../../../data/cadets-e3/test/stream/stream-cadets-e3-attack-$$number.txt ; \
+		python ProvParser/provparser/up.py -v -m -S 10000 -i ../../../data/cadets-e3/edgelists_attack/cadets-e3-attack.txt.$$number -b ../../../data/cadets-e3/test/base/base-cadets-e3-attack-$$number.txt -s ../../../data/cadets-e3/test/stream/stream-cadets-e3-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
 
