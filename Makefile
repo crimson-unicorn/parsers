@@ -59,6 +59,30 @@ attack:
 		number=`expr $$number + 1` ; \
 	done
 
+evasion:
+	cd ../../data && mkdir -p evasion_data
+	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
+	number=0 ; while [ $$number -le 99 ] ; do \
+		python streamspot/parse_evasion.py $$number ../../data/EvasiveAttacks/evasiveAttackGraph-$$number.txt ../../data/evasion_data/base_train/base-evasion-$$number.txt ../../data/evasion_data/stream_train/stream-evasion-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+wget_toy:
+	test -f venv/bin/activate || virtualenv -p $(shell which python2) venv
+	. venv/bin/activate ; \
+	pip install xxhash tqdm ; \
+	mkdir -p ../../wget_test/wget_data ; \
+	mkdir -p ../../wget_test/wget_data/base ; \
+	mkdir -p ../../wget_test/wget_data/stream ; \
+	python camflow/prepare.py -i ../../wget_test/wget-normal.log -o wget-normal-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -i wget-normal-preprocessed.txt -B ../../wget_test/wget_data/base/base-wget.txt -S ../../wget_test/wget_data/stream/stream-wget.txt
+	rm wget-normal-preprocessed.txt error.log
+
+evasion_toy:
+	cd ../../data && mkdir -p evasion_toy_data
+	cd ../../data/evasion_toy_data && mkdir -p base_train && mkdir -p stream_train
+	python streamspot/parse_evasion.py 0 ../../data/toyEvasiveAttacks/dispersedGraph.csv ../../data/evasion_toy_data/base_train/base-evasion-1.txt ../../data/evasion_toy_data/stream_train/stream-evasion-1.txt
+
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 109 ] ; do \
