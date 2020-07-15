@@ -59,6 +59,16 @@ attack:
 		number=`expr $$number + 1` ; \
 	done
 
+margo:
+	python3 camflow/prepare.py -i DATA/trace.orig -o DATA/trace.prepared
+	python3 camflow/parse.py DATA/trace.prepared
+
+		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
+		rm error.log ; \
+		rm wget-normal-preprocessed-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 109 ] ; do \

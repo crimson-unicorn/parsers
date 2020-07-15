@@ -3,7 +3,6 @@
 # To be parsed into a format for Unicorn
 # data parser.
 ##############################################
-
 import os, sys, argparse
 import json
 import logging
@@ -11,6 +10,13 @@ import xxhash
 import time
 import datetime
 import tqdm
+import sqlite3
+from sqlite3 import Error
+
+
+# This is probably a terrible hack to make this global, but let's see if
+# it works before passing it all over the place
+hashmapdb = None
 
 
 def hashgen(vlist):
@@ -25,7 +31,10 @@ def hashgen(vlist):
 	hasher = xxhash.xxh64()
 	for v in vlist:
 		hasher.update(v)
-	return hasher.intdigest()
+	h = hasher.intdigest()
+	if hashmapdb:
+		db_add(hashmapdb, h, vlist)
+	return h
 
 
 def valgencf(cfrecval):
@@ -74,8 +83,6 @@ def valgencfe(cfrecval):
 	else:
 		val.append("N/A")
 	return hashgen(val)
-
-
 
 def parse_nodes(json_string, node_map):
 	try:
@@ -504,15 +511,52 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 	pb.close()
 	return total_edges
 
+def db_init(db_file) :
+	""" Create the database we'll use to map hash values to graph structures """
+	sql_table_create = ''' CREATE TABLE IF NOT EXISTS hashmap (
+		hash text PRIMARY KEY,
+		val text,
+		level integer
+	); '''
+
+	conn = None
+	try:
+		conn = sqlite3.connect(db_file)
+	except Error as e:
+		print(e)
+
+	# Now create a cursor so we can create a table
+	try:
+		cursor = conn.cursor()
+		cursor.execute(sql_table_create)
+	except Error as e:
+		print(e)
+
+	return cursor
+
+def db_add(cursor, hash, vallist) :
+	sql_insert = ''' INSERT INTO hashmap (hash, val, level) VALUES (?,?,0) 
+		ON CONFLICT(hash) DO UPDATE SET val=?; '''
+	s = str(vallist)
+	cursor.execute(sql_insert, (str(hash), s, s))
+
+def db_close(cursor) :
+	conn = cursor.connection
+	conn.commit()
+	cursor.close()
+	conn.close()
 
 if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description='Convert CamFlow JSON datasets to Unicorn edgelist datasets for runtime performance evaluation.')
+	parser.add_argument('-d', '--dir', help='map directory', required=False)
 	parser.add_argument('-i', '--input', help='input data file path', required=True)
 	parser.add_argument('-o', '--output', help='output destination file path', required=True)
 	parser.add_argument('-n', '--noencode', help='do not encode UUID in output', action='store_true')
 	args = parser.parse_args()
 
 	logging.basicConfig(filename='error.log',level=logging.DEBUG)
+	if not args.dir == None:
+		hashmapdb = db_init(args.dir + "/label.db")
 
 	node_map = {}
 	parse_all_nodes(args.input, node_map)
@@ -522,3 +566,6 @@ if __name__ == "__main__":
 	stats = open("stats.csv", "a+")
 	stats_str = args.input + "," + str(total_nodes) + "," + str(total_edges) + "\n"
 	stats.write(stats_str)
+
+	if hashmapdb:
+		db_close(hashmapdb)

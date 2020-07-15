@@ -109,7 +109,7 @@ if __name__ == "__main__":
 		if num == len(graph) - 1:
 			ts_file.write(str(edge[6]) + '\n')
 
-	print "[success] processing of " + args.input + " is done. Data now can be accepted by the graph processing framework."
+#	print "[success] processing of " + args.input + " is done. Data now can be accepted by the graph processing framework."
 	
 	base_file.close()
 	stream_file.close()
