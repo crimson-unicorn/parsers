@@ -86,7 +86,7 @@ def valgencfe(cfrecval):
 
 def parse_nodes(json_string, node_map):
 	try:
-		json_object = json.loads(json_string)
+		json_object = json.loads(json_string.decode("utf-8","ignore"))
 	except Exception as e:
 		print(e)
 		print(json_string)
@@ -117,7 +117,7 @@ def parse_nodes(json_string, node_map):
 def parse_all_nodes(filename, node_map):
 	description = '\x1b[6;30;43m[i]\x1b[0m Node Parsing Progress of File: \x1b[6;30;42m{}\x1b[0m'.format(filename)
 	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
-	with open(filename, 'r') as f:
+	with open(filename, 'rb') as f:
 		for line in f:
 			pb.update()
 			parse_nodes(line, node_map)
@@ -135,10 +135,10 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
 	total_edges = 0
 	smallest_timestamp = None
-	with open(inputfile, 'r') as f:
+	with open(inputfile, 'rb') as f:
 		for line in f:
 			pb.update()
-			json_object = json.loads(line)
+			json_object = json.loads(line.decode("utf-8","ignore"))
 
 			if "used" in json_object:
 				used = json_object["used"]
@@ -286,7 +286,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 	output = open(outputfile, "w+")
 	description = '\x1b[6;30;43m[i]\x1b[0m Progress of Generating Output of File: \x1b[6;30;42m{}\x1b[0m'.format(inputfile)
 	pb = tqdm.tqdm(desc=description, mininterval=1.0, unit="recs")
-	with open(inputfile, 'r') as f:
+	with open(inputfile, 'r', encoding="utf8", errors='ignore') as f:
 		for line in f:
 			pb.update()
 			json_object = json.loads(line)

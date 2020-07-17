@@ -59,15 +59,37 @@ attack:
 		number=`expr $$number + 1` ; \
 	done
 
-margo:
-	python3 camflow/prepare.py -i DATA/trace.orig -o DATA/trace.prepared
-	python3 camflow/parse.py DATA/trace.prepared
-
-		python camflow/parse.py wget-normal-preprocessed-$$number.txt ../../data/benign/base/base-wget-$$number.txt ../../data/benign/stream/stream-wget-$$number.txt ; \
-		rm error.log ; \
-		rm wget-normal-preprocessed-$$number.txt ; \
+evasion:
+	cd ../../data && mkdir -p evasion_data
+	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
+	number=0 ; while [ $$number -le 99 ] ; do \
+		python streamspot/parse_evasion.py $$number ../../data/EvasiveAttacks/evasiveAttackGraph-$$number.txt ../../data/evasion_data/base_train/base-evasion-$$number.txt ../../data/evasion_data/stream_train/stream-evasion-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+
+D=/Users/margo/Research/Visicorn/DATA
+margo:
+	test -f venv/bin/activate || virtualenv -p $(shell which python2) venv
+	. venv/bin/activate ; \
+	python -m pip install xxhash tqdm sqlite3 ; \
+	python camflow/prepare.py -i $D/NORMAL/trace0.data -o $D/NORMAL/trace0.prepared -d $D ; \
+	python camflow/parse.py -s 10 -i $D/NORMAL/trace0.prepared -B $D/NORMAL-parsed/trace0.parsed-base -S $D/NORMAL-parsed/trace0.parsed-stream
+
+wget_toy:
+	test -f venv/bin/activate || virtualenv -p $(shell which python2) venv
+	. venv/bin/activate ; \
+	pip install xxhash tqdm ; \
+	mkdir -p ../../wget_test/wget_data ; \
+	mkdir -p ../../wget_test/wget_data/base ; \
+	mkdir -p ../../wget_test/wget_data/stream ; \
+	python camflow/prepare.py -i ../../wget_test/wget-normal.log -o wget-normal-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -i wget-normal-preprocessed.txt -B ../../wget_test/wget_data/base/base-wget.txt -S ../../wget_test/wget_data/stream/stream-wget.txt
+	rm wget-normal-preprocessed.txt error.log
+
+evasion_toy:
+	cd ../../data && mkdir -p evasion_toy_data
+	cd ../../data/evasion_toy_data && mkdir -p base_train && mkdir -p stream_train
+	python streamspot/parse_evasion.py 0 ../../data/toyEvasiveAttacks/dispersedGraph.csv ../../data/evasion_toy_data/base_train/base-evasion-1.txt ../../data/evasion_toy_data/stream_train/stream-evasion-1.txt
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
