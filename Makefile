@@ -71,17 +71,31 @@ wget_toy:
 	test -f venv/bin/activate || virtualenv -p $(shell which python2) venv
 	. venv/bin/activate ; \
 	pip install xxhash tqdm ; \
-	mkdir -p ../../wget_test/wget_data ; \
-	mkdir -p ../../wget_test/wget_data/base ; \
-	mkdir -p ../../wget_test/wget_data/stream ; \
-	python camflow/prepare.py -i ../../wget_test/wget-normal.log -o wget-normal-preprocessed.txt ; \
-	python camflow/parse.py -s 10 -i wget-normal-preprocessed.txt -B ../../wget_test/wget_data/base/base-wget.txt -S ../../wget_test/wget_data/stream/stream-wget.txt
-	rm wget-normal-preprocessed.txt error.log
+	mkdir -p ../../data/camflow_train ; \
+	mkdir -p ../../data/camflow_test ; \
+	mkdir -p ../../data/camflow_train/base ; \
+	mkdir -p ../../data/camflow_test/base ; \
+	mkdir -p ../../data/camflow_train/stream ; \
+	mkdir -p ../../data/camflow_test/stream ; \
+	python camflow/prepare.py -i ../../data/camflow_raw_data/attack0.data -o wget-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -b 1 -i wget-preprocessed.txt -B ../../data/camflow_test/base/base-wget.txt -S ../../data/camflow_test/stream/stream-wget.txt ; \
+	rm wget-preprocessed.txt ; \
+	python camflow/prepare.py -i ../../data/camflow_raw_data/normal0.data -o wget-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -b 1 -i wget-preprocessed.txt -B ../../data/camflow_train/base/base-wget-0.txt -S ../../data/camflow_train/stream/stream-wget-0.txt ; \
+	rm wget-preprocessed.txt ; \
+	python camflow/prepare.py -i ../../data/camflow_raw_data/normal1.data -o wget-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -b 1 -i wget-preprocessed.txt -B ../../data/camflow_train/base/base-wget-1.txt -S ../../data/camflow_train/stream/stream-wget-1.txt ; \
+	rm wget-preprocessed.txt
+
+a:
+	python camflow/prepare.py -i ../../data/camflow_raw_data/attack4.data -o wget-preprocessed.txt ; \
+	python camflow/parse.py -s 10 -b 500 -i wget-preprocessed.txt -B ../../data/camflow_test/base/base-wget.txt -S ../../data/camflow_test/stream/stream-wget.txt ; \
+	rm wget-preprocessed.txt
 
 evasion_toy:
-	cd ../../data && mkdir -p evasion_toy_data
-	cd ../../data/evasion_toy_data && mkdir -p base_train && mkdir -p stream_train
-	python streamspot/parse_evasion.py 0 ../../data/toyEvasiveAttacks/dispersedGraph.csv ../../data/evasion_toy_data/base_train/base-evasion-1.txt ../../data/evasion_toy_data/stream_train/stream-evasion-1.txt
+	cd ../../data && mkdir -p evasion_data
+	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
+	python streamspot/parse.py 0 ../../data/raw_evasion_data/dispersedGraph-579-300.csv ../../data/evasion_data/base_train/base-evasion-0.txt ../../data/evasion_data/stream_train/stream-evasion-0.txt
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
