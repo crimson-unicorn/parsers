@@ -12,7 +12,7 @@ If you want to use this parser for your own graph, make sure the format of the g
 (see [Graph Format](#graph-format)).
 
 ### [Usage](#usage)
-You can either run our Python script directly or use our Makfile template that runs the parser in a virtual environment (recommended).
+You can either run our Python script directly or use our Makefile template that runs the parser in a virtual environment (recommended).
 Should you choose to run the script directly, you must install `tqdm` first:
 ```
 pip install tqdm
