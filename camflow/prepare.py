@@ -49,6 +49,11 @@ def valgencf(cfrecval):
 	a single integer value of the record
 	"""
 	val = list()
+	# Ugly hack to deal with types that appear in both nodes
+	# and edges (gag)
+	if cfrecval["prov:type"] == 'link' :
+		cfrecval["prov:type"] = 'nlink'
+
 	val.append(cfrecval["prov:type"])
 	if "cf:secctx" in cfrecval:
 		val.append(cfrecval["cf:secctx"])
@@ -297,7 +302,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 					if "prov:type" not in used[uid]:
 						continue
 					else:
-						edgetype = valgencf(used[uid])
+						edgetype = valgencfe(used[uid])
 					if "cf:id" not in used[uid]:
 						logging.debug("Edge (used) record without timestamp. UUID: %s", uid)
 						continue
@@ -340,7 +345,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 					if "prov:type" not in wasGeneratedBy[uid]:
 						continue
 					else:
-						edgetype = valgencf(wasGeneratedBy[uid])
+						edgetype = valgencfe(wasGeneratedBy[uid])
 					if "cf:id" not in wasGeneratedBy[uid]:
 						logging.debug("Edge (wasGeneratedBy) record without timestamp. UUID: %s", uid)
 						continue
@@ -383,7 +388,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 					if "prov:type" not in wasInformedBy[uid]:
 						continue
 					else:
-						edgetype = valgencf(wasInformedBy[uid])
+						edgetype = valgencfe(wasInformedBy[uid])
 					if "cf:id" not in wasInformedBy[uid]:
 						logging.debug("Edge (wasInformedBy) record without timestamp. UUID: %s", uid)
 						continue
@@ -426,7 +431,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 					if "prov:type" not in wasDerivedFrom[uid]:
 						continue
 					else:
-						edgetype = valgencf(wasDerivedFrom[uid])
+						edgetype = valgencfe(wasDerivedFrom[uid])
 					if "cf:id" not in wasDerivedFrom[uid]:
 						logging.debug("Edge (wasDerivedFrom) record without timestamp. UUID: %s", uid)
 						continue
@@ -506,6 +511,7 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
 							+ str(srcVal) + ':' + str(dstVal) \
 							+ ':' + str(edgetype) + ':' + str(timestamp) \
 							+ ':' + str(adjusted_ts) + '\t' + '\n')
+
 	f.close()
 	output.close()
 	pb.close()
