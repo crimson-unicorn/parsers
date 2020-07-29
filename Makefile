@@ -27,6 +27,17 @@ gmail:
 		number=`expr $$number + 1` ; \
 	done
 
+gmail_new:
+	cd ../../data && mkdir -p gmail_data_new
+	cd ../../data/gmail_data_new && mkdir -p base_train && mkdir -p stream_train
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install tqdm ; \
+		number=100 ; while [ $$number -le 199 ] ; do \
+			python streamspot/parse.py -g $$number -s 1 -i ../../data/all.tsv -b ../../data/gmail_data_new/base_train/base-gmail-$$number.txt -S ../../data/gmail_data_new/stream_train/stream-gmail-$$number.txt ; \
+			number=`expr $$number + 1` ; \
+		done
+
 vgame:
 	cd ../../data && mkdir -p vgame_data
 	cd ../../data/vgame_data && mkdir -p base_train && mkdir -p stream_train
@@ -58,6 +69,57 @@ attack:
 		python streamspot/parse.py $$number ../../data/all.tsv ../../data/attack_data/base_train/base-attack-$$number.txt ../../data/attack_data/stream_train/stream-attack-$$number.txt ; \
 		number=`expr $$number + 1` ; \
 	done
+
+attack_new:
+	cd ../../data && mkdir -p attack_data_new
+	cd ../../data/attack_data_new && mkdir -p base_train && mkdir -p stream_train
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install tqdm ; \
+		number=300 ; while [ $$number -le 399 ] ; do \
+			python streamspot/parse.py -g $$number -s 1 -i ../../data/all.tsv -b ../../data/attack_data_new/base_train/base-attack-$$number.txt -S ../../data/attack_data_new/stream_train/stream-attack-$$number.txt ; \
+			number=`expr $$number + 1` ; \
+		done
+
+D=/Users/margo/Research/Visicorn/DATA
+margo:
+	test -f venv/bin/activate || virtualenv -p $(shell which python2) venv
+	. venv/bin/activate ; \
+		pip install xxhash tqdm sqlite3 ; \
+		python camflow/prepare.py -i $D/NORMAL/trace0.data -o $D/NORMAL/trace0.prepared -d $D ; \
+		python camflow/parse.py -i $D/NORMAL/trace0.prepared -B $D/NORMAL-parsed/trace0.parsed-base -S $D/NORMAL-parsed/trace0.parsed-stream
+
+evasion:
+	cd ../../data && mkdir -p evasion_data
+	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install tqdm ; \
+		python streamspot/parse.py -g 0 -i ../../data/raw_evasion_data/dispersedGraph-579-300-targeted-6perc.csv -b ../../data/evasion_data/base_train/base-evasion-1.txt -S ../../data/evasion_data/stream_train/stream-evasion-1.txt
+
+visicorn:
+	cd ../../data && mkdir -p camflow_train
+	cd ../../data/camflow_train && mkdir -p base && mkdir -p stream
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install xxhash tqdm ; \
+		python camflow/prepare.py -i ../../data/camflow_raw_data/normal0.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_train/base/base-camflow-0.txt -S ../../data/camflow_train/stream/stream-camflow-0.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_raw_data/normal1.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_train/base/base-camflow-1.txt -S ../../data/camflow_train/stream/stream-camflow-1.txt ; \
+		rm preprocessed.txt
+	cd ../../data && mkdir -p camflow_test
+	cd ../../data/camflow_test && mkdir -p base && mkdir -p stream
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install xxhash tqdm ; \
+		python camflow/prepare.py -i ../../data/camflow_raw_data/attack0.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_test/base/base-camflow-0.txt -S ../../data/camflow_test/stream/stream-camflow-0.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_raw_data/attack4.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_test/base/base-camflow-1.txt -S ../../data/camflow_test/stream/stream-camflow-1.txt ; \
+		rm preprocessed.txt
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream

@@ -59,10 +59,10 @@ make clean
 ## [Graph Format](#graph-format)
 The output of `prepare.py` is an edgelist, with each line recording an edge of the format:
 ```
-<srcID>	<dstID>	<srcType>:<dstType>:<edgeType>:<logicalTimestamp>[:<Timestamp>]
+<srcID>	<dstID>	<srcType>:<dstType>:<edgeType>:<logicalTimestamp>:<(adjusted)Timestamp>
 ```
 * If you set `-n`, `srcID` and `dstID` will be in CamFlow original UUID format. This is usually not you want.
-* If you set `-s`, you will see the last `Timestamp` value. This is usually not necessary to have.
+* If you set `-s`, you will see the adjusted `Timestamp` value. This is usually not necessary to have.
 
 The output of `parse.py` consists of a base graph and a stream graph.
 In the base graph, each line is an edge of the format:
@@ -73,8 +73,8 @@ This is the same as in the `prepare.py` except that edges are sorted by the logi
 
 In the stream graph, each line is also an edge, but of the format:
 ```
-<srcID> <dstID> <srcType>:<dstType>:<edgeType>:<srcUnseen>:<dstUnseen>:<logicalTimestamp>[:<Timestamp>]
+<srcID> <dstID> <srcType>:<dstType>:<edgeType>:<srcUnseen>:<dstUnseen>:<logicalTimestamp>:<(adjusted)Timestamp>
 ```
 * `srcUnseen` and `dstUnseen` are either 0 (we have seen this node in a previous edge) or 1 (we have not). This is needed for the graph processing framework we use.
-* If you set `-s`, you will see the last `Timestamp` value. This is usually not necessary to have.
+* If you set `-s`, you will see the adjusted `Timestamp` value. This is usually not necessary to have.
 

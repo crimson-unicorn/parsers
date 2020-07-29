@@ -20,11 +20,10 @@ def compare_edges(a, b):
 def read_single_graph(file_name):
     """Parsing edgelist from the output of prepare.py.
     The format from prepare.py looks like:
-    <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_logical_timestamp>[:<timestamp_stats>]
-    The last '<timestamp_stats>' may or may not exist depending on whether the -s option is set when running prepare.py.
+    <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_logical_timestamp>:<(adjusted)_timestamp>
+    The last '<(adjusted)_timestamp>' may or may not be adjusted depending on whether the -s option is set when running prepare.py (adjusted if -s is set).
     Returned from this funtion is a list of edges, each of which is itself a list containing:
-    [source_node_id, destination_node_id, source_node_type, destination_node_type, edge_type, logical_timestamp, [timestamp,] source_node_seen, destination_node_seen]
-    The `timestamp` may or may not exist.
+    [source_node_id, destination_node_id, source_node_type, destination_node_type, edge_type, logical_timestamp, (adjusted)_timestamp, source_node_seen, destination_node_seen]
     """
     map_id = dict()	# maps original IDs to new IDs, which always start from 0
     new_id = 0
@@ -36,13 +35,12 @@ def read_single_graph(file_name):
         for line in f:
             pb.update()                                     # for progress tracking
             edge = line.strip().split("\t")
-            attributes = edge[2].strip().split(":")         # [hashed_source_type, hashed_destination_type, hashed_edge_type, edge_logical_timestamp, [timestamp_stats]]
+            attributes = edge[2].strip().split(":")         # [hashed_source_type, hashed_destination_type, hashed_edge_type, edge_logical_timestamp, (adjusted)_timestamp]
             source_node_type = attributes[0]                # hashed_source_type
             destination_node_type = attributes[1]           # hashed_destination_type
             edge_type = attributes[2]                       # hashed_edge_type
             edge_order = attributes[3]                      # edge_logical_timestamp
-            if CONSOLE_ARGUMENTS.stats:
-                ts = attributes[4]                          # timestamp_stats
+            ts = attributes[4:]                             # timestamp, may or may not be adjusted (if not adjusted, it is a list of values)
             # now we rearrange the edge vector:
             # edge[0] is source_node_id, as orginally split
             # edge[1] is destination_node_id, as originally split
@@ -50,8 +48,7 @@ def read_single_graph(file_name):
             edge.append(destination_node_type)              # edge[3] = hashed_destination_type
             edge.append(edge_type)                          # edge[4] = hashed_edge_type
             edge.append(edge_order)                         # edge[5] = edge_logical_timestamp
-            if CONSOLE_ARGUMENTS.stats:
-                edge.append(ts)                             # optional: edge[6] = timestamp_stats
+            edge.append("-".join(ts))                       # edge[6] = timestamp (may or may not be adjusted)
 
             graph.append(edge)
     f.close()
@@ -65,7 +62,7 @@ def read_single_graph(file_name):
         pb.update()
         if edge[0] in map_id:                               # check if source ID has been seen before
             edge[0] = map_id[edge[0]]
-            edge.append("0")                                # edge[6/7] = whether source node has been seen before
+            edge.append("0")                                # edge[7] = whether source node has been seen before
         else:
             edge.append("1")
             map_id[edge[0]] = str(new_id)
@@ -74,7 +71,7 @@ def read_single_graph(file_name):
 
         if edge[1] in map_id:                               # check if destination ID has been seen before
             edge[1] = map_id[edge[1]]
-            edge.append("0")                                # edge[7/8] = whether destination node has been seen before
+            edge.append("0")                                # edge[8] = whether destination node has been seen before
         else:
             edge.append("1")
             map_id[edge[1]] = str(new_id)
@@ -122,10 +119,7 @@ if __name__ == "__main__":
         if num < base_graph_size:
             base_file.write("{} {} {}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[5]))
 	else:
-            if args.stats:
-                stream_file.write("{} {} {}:{}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[7], edge[8], edge[5], edge[6]))
-            else:
-                stream_file.write("{} {} {}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[6], edge[7], edge[5]))
+            stream_file.write("{} {} {}:{}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[7], edge[8], edge[5], edge[6]))
         if args.stats:
             edge_cnt += 1
             if not recorded_once and edge_cnt == base_graph_size:

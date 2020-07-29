@@ -7,9 +7,14 @@ import xxhash
 import time
 import datetime
 import tqdm
+import sqlite3
 
 # make argparse arguments global
 CONSOLE_ARGUMENTS = None
+# global database object to store mappings
+# from hash values to graph elements
+HASHMAP_DB = None
+
 
 def hashgen(l):
     """Generate a single hash value from a list. @l is a list of
@@ -18,7 +23,11 @@ def hashgen(l):
     hasher = xxhash.xxh64()
     for e in l:
         hasher.update(e)
-    return hasher.intdigest()
+    h = hasher.intdigest()
+    # store the hash mapping to the global DB
+    if HASHMAP_DB:
+        db_add(HASHMAP_DB, h, l)
+    return h
 
 
 def nodegen(node):
@@ -28,7 +37,14 @@ def nodegen(node):
     function returns a single hashed integer value for the node."""
     l = list()
     assert(node["prov:type"])               # CamFlow node must contain "prov:type" field
-    l.append(node["prov:type"])
+    # NOTE: "link" type appears in both node and edge type
+    #       We hack to avoid this for hashmap database
+    # TODO: maybe there is a better way?
+    if node["prov:type"] == "link":
+        l.append("nlink")
+    else:
+        l.append(node["prov:type"])
+
     # CamFlow node may or may not have the
     # following fields. If not, we will
     # simply use N/A to represent absense.
@@ -60,6 +76,49 @@ def edgegen(edge):
     else:
         l.append("N/A")
     return hashgen(l)
+
+
+def db_init(db_file):
+    """Create the database we'll use to map hash values to graph structures. """
+    sql_table_create = ''' CREATE TABLE IF NOT EXISTS hashmap (
+                        hash text PRIMARY KEY,
+                        val text,
+                        level integer); '''
+    # connect to sqlite3 database
+    conn = None
+    try:
+        conn = sqlite3.connect(db_file)
+    except sqlite3.Error as e:
+        print("\33[101m[FATAL]\033[0m {}".format(e))
+        exit(1)
+    # create a cursor to create a table
+    try:
+        cursor = conn.cursor()
+        cursor.execute(sql_table_create)
+    except sqlite3.Error as e:
+        print("\33[101m[FATAL]\033[0m {}".format(e))
+        exit(1)
+    return cursor
+
+
+def db_add(cursor, h, l):
+    """Add a hash value @h and the corresponding list @l being hashed
+    to the database pointed by @cursor. """
+    sql_insert = ''' INSERT INTO hashmap (hash, val, level) VALUES (?,?,0) ON CONFLICT(hash) DO UPDATE SET val=?; '''
+    s = str(l)
+    cursor.execute(sql_insert, (str(h), s, s))
+
+
+def db_close(cursor):
+    """Try to close the database through the cursor.
+    If cursor does not refer to a valid database, we simply do nothing. """
+    try:
+        conn = cursor.connection
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except:
+        print("\33[5;30;42m[WARNING]\033[0m Database is not closed properly...maybe you don't even have one")
 
 
 def parse_nodes(json_string, node_map):
@@ -319,10 +378,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             logging.debug("edge (used) record without timestamp: {}".format(uid))
                         continue
                     else:
+                        # we record original timestamp
+                        # for visicorn analysis
+                        ts_str = used[uid]["cf:date"]
                         # we only record @adjusted_ts if we need
                         # to record stats of CamFlow dataset.
                         if CONSOLE_ARGUMENTS.stats:
-                            ts_str = used[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
                     total_edges += 1
@@ -330,12 +391,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, ts_str))
 		    else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, ts_str))
 
             if "wasGeneratedBy" in json_object:
                 wasGeneratedBy = json_object["wasGeneratedBy"]
@@ -379,8 +440,8 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             logging.debug("edge (wasGeneratedBy) record without timestamp: {}".format(uid))
                         continue
                     else:
+                        ts_str = wasGeneratedBy[uid]["cf:date"]
                         if CONSOLE_ARGUMENTS.stats:
-                            ts_str = wasGeneratedBy[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
                     total_edges += 1
@@ -388,12 +449,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, ts_str))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, ts_str))
 	
             if "wasInformedBy" in json_object:
                 wasInformedBy = json_object["wasInformedBy"]
@@ -437,8 +498,8 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             logging.debug("edge (wasInformedBy) record without timestamp: {}".format(uid))
                         continue
                     else:
+                        ts_str = wasInformedBy[uid]["cf:date"]
                         if CONSOLE_ARGUMENTS.stats:
-                            ts_str = wasInformedBy[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
                     total_edges += 1
@@ -446,12 +507,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, ts_str))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, ts_str))
 
             if "wasDerivedFrom" in json_object:
                 wasDerivedFrom = json_object["wasDerivedFrom"]
@@ -495,8 +556,8 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             logging.debug("edge (wasDerivedFrom) record without timestamp: {}".format(uid))
                         continue
                     else:
+                        ts_str = wasDerivedFrom[uid]["cf:date"]
                         if CONSOLE_ARGUMENTS.stats:
-                            ts_str = wasDerivedFrom[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
                     total_edges += 1
@@ -504,12 +565,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, ts_str))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, ts_str))
 
             if "wasAssociatedWith" in json_object:
                 wasAssociatedWith = json_object["wasAssociatedWith"]
@@ -553,8 +614,8 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             logging.debug("edge (wasAssociatedWith) record without timestamp: {}".format(uid))
                         continue
                     else:
+                        ts_str = wasAssociatedWith[uid]["cf:date"]
                         if CONSOLE_ARGUMENTS.stats:
-                            ts_str = wasAssociatedWith[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
                     total_edges += 1
@@ -562,12 +623,12 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, ts_str))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
                         else:
-                            output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, ts_str))
     f.close()
     output.close()
     pb.close()
@@ -578,6 +639,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='Convert CamFlow JSON to Unicorn edgelist')
     parser.add_argument('-i', '--input', help='input CamFlow data file path', required=True)
     parser.add_argument('-o', '--output', help='output edgelist file path', required=True)
+    parser.add_argument('-d', '--dir', help='hashmap directory (use this option to create a hashmap database)')
     parser.add_argument('-n', '--noencode', help='do not encode UUID in output (default is to encode)', action='store_true')
     parser.add_argument('-v', '--verbose', help='verbose logging (default is false)', action='store_true')
     parser.add_argument('-l', '--log', help='log file path (only valid is -v is set; default is debug.log)', default='debug.log')
@@ -590,6 +652,10 @@ if __name__ == "__main__":
     if args.verbose:
         logging.basicConfig(filename=args.log, level=logging.DEBUG)
 
+    # if --dir is provided, we will create a hashmap database
+    if args.dir:
+        HASHMAP_DB = db_init("{}/label.db".format(args.dir))
+
     node_map = dict()
     parse_all_nodes(args.input, node_map)
     total_edges = parse_all_edges(args.input, args.output, node_map, args.noencode)
@@ -598,4 +664,7 @@ if __name__ == "__main__":
         total_nodes = len(node_map)
         stats = open(args.stats_file, "a+")
         stats.write("{},{},{}\n".format(args.input, total_nodes, total_edges))
+
+    if HASHMAP_DB:
+        db_close(HASHMAP_DB)
 
