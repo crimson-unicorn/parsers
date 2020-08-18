@@ -54,9 +54,95 @@ cnn:
 attack:
 	cd ../../data && mkdir -p attack_data
 	cd ../../data/attack_data && mkdir -p base_train && mkdir -p stream_train
-	number=300 ; while [ $$number -le 399 ] ; do \
-		python streamspot/parse.py $$number ../../data/all.tsv ../../data/attack_data/base_train/base-attack-$$number.txt ../../data/attack_data/stream_train/stream-attack-$$number.txt ; \
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	 . venv/bin/activate ; \
+		pip install tqdm ; \
+		number=300 ; while [ $$number -le 399 ] ; do \
+			python streamspot/parse.py -g $$number -i ../../data/all.tsv -b ../../data/attack_data/base_train/base-attack-$$number.txt -S ../../data/attack_data/stream_train/stream-attack-$$number.txt ; \
+			number=`expr $$number + 1` ; \
+		done
+
+evasion:
+	cd ../../data && mkdir -p evasion_data
+	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install tqdm ; \
+		number=0 ; while [ $$number -le 99 ] ; do \
+			python streamspot/parse.py -g 0 -i ../../data/evasion_raw/dispersedGraph-579-300-targeted-$$number.csv -b ../../data/evasion_data/base_train/base-evasion-$$number.txt -S ../../data/evasion_data/stream_train/stream-evasion-$$number.txt ; \
+			number=`expr $$number + 1` ; \
+		done
+
+camflow_toy:
+	cd ../../data && mkdir -p camflow_train_toy
+	cd ../../data/camflow_train_toy/ && mkdir -p base && mkdir -p stream
+	cd ../../data && mkdir -p camflow_test_toy
+	cd ../../data/camflow_test_toy/ && mkdir -p base && mkdir -p stream
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv ; \
+		. venv/bin/activate ; \
+		pip install xxhash tqdm ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack1.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-1.txt -S ../../data/camflow_test_toy/stream/stream-camflow-1.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack2.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-2.txt -S ../../data/camflow_test_toy/stream/stream-camflow-2.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack3.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-3.txt -S ../../data/camflow_test_toy/stream/stream-camflow-3.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack5.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-5.txt -S ../../data/camflow_test_toy/stream/stream-camflow-5.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack6.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-6.txt -S ../../data/camflow_test_toy/stream/stream-camflow-6.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/normal0.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_train_toy/base/base-camflow-0.txt -S ../../data/camflow_train_toy/stream/stream-camflow-0.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/normal1.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_train_toy/base/base-camflow-1.txt -S ../../data/camflow_train_toy/stream/stream-camflow-1.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack0.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-0.txt -S ../../data/camflow_test_toy/stream/stream-camflow-0.txt ; \
+		rm preprocessed.txt ; \
+		python camflow/prepare.py -i ../../data/camflow_new_raw/attack4.data -o preprocessed.txt ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy/base/base-camflow-4.txt -S ../../data/camflow_test_toy/stream/stream-camflow-4.txt ; \
+		rm preprocessed.txt ; \
+
+prepare_camflow:
+	number=0 ; while [ $$number -le 12 ] ; do \
+		cd ../../data/camflow-apt-raw/ && tar xzf wget-normal-raw-$$number.gz.tar ; \
 		number=`expr $$number + 1` ; \
+	done
+	number=0 ; while [ $$number -le 2 ] ; do \
+		cd ../../data/camflow-apt-raw/ && tar xzf wget-attack-raw-$$number.gz.tar ; \
+		number=`expr $$number + 1` ; \
+	done
+
+camflow_train_full:
+	cd ../../data && mkdir -p camflow_train_full
+	cd ../../data/camflow_train_full/ && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 124 ] ; do \
+		test -f venv/bin/activate || virtualenv -p $(shell which python) venv ; \
+		. venv/bin/activate ; \
+		pip install xxhash tqdm ; \
+		python camflow/prepare.py -i ../../data/camflow-apt-raw/normal-camflow-$$number.data -o preprocessed.txt ; \
+                python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_train_full/base/base-camflow-$$number.txt -S ../../data/camflow_train_full/stream/stream-camflow-$$number.txt ; \
+		rm preprocessed.txt ; \
+		number=`expr $$number + 1` ; \
+	done
+
+camflow_test_full:
+	cd ../../data && mkdir -p camflow_test_full
+	cd ../../data/camflow_test_full/ && mkdir -p base && mkdir -p stream
+	number=0 ; while [ $$number -le 24 ] ; do \
+	       test -f venv/bin/activate || virtualenv -p $(shell which python) venv ; \
+	       . venv/bin/activate ; \
+	       pip install xxhash tqdm ; \
+	       python camflow/prepare.py -i ../../data/camflow-apt-raw/camflow-attack-$$number.log -o preprocessed.txt ; \
+	       python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_test_full/base/base-camflow-$$number.txt -S ../../data/camflow_test_full/stream/stream-camflow-$$number.txt ; \
+	       rm preprocessed.txt ; \
+	       number=`expr $$number + 1` ; \
 	done
 
 wget_train:
