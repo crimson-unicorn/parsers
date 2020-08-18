@@ -80,7 +80,7 @@ def edgegen(edge):
 
 def db_init(db_file):
     """Create the database we'll use to map hash values to graph structures. """
-    sql_table_create = ''' CREATE TABLE IF NOT EXISTS hashmap (
+    sql_table_create = ''' CREATE TABLE IF NOT EXISTS {} (
                         hash text PRIMARY KEY,
                         val text,
                         level integer); '''
@@ -94,7 +94,7 @@ def db_init(db_file):
     # create a cursor to create a table
     try:
         cursor = conn.cursor()
-        cursor.execute(sql_table_create)
+        cursor.execute(sql_table_create.format(CONSOLE_ARGUMENTS.hashmap_name))
     except sqlite3.Error as e:
         print("\33[101m[FATAL]\033[0m {}".format(e))
         exit(1)
@@ -104,9 +104,9 @@ def db_init(db_file):
 def db_add(cursor, h, l):
     """Add a hash value @h and the corresponding list @l being hashed
     to the database pointed by @cursor. """
-    sql_insert = ''' INSERT INTO hashmap (hash, val, level) VALUES (?,?,0) ON CONFLICT(hash) DO UPDATE SET val=?; '''
+    sql_insert = ''' INSERT INTO {} (hash, val, level) VALUES (?,?,0) ON CONFLICT(hash) DO UPDATE SET val=?; '''
     s = str(l)
-    cursor.execute(sql_insert, (str(h), s, s))
+    cursor.execute(sql_insert.format(CONSOLE_ARGUMENTS.hashmap_name), (str(h), s, s))
 
 
 def db_close(cursor):
@@ -640,6 +640,7 @@ if __name__ == "__main__":
     parser.add_argument('-i', '--input', help='input CamFlow data file path', required=True)
     parser.add_argument('-o', '--output', help='output edgelist file path', required=True)
     parser.add_argument('-d', '--dir', help='hashmap directory (use this option to create a hashmap database)')
+    parser.add_argument('-m', '--hashmap-name', help='the name of the hashmap in the database. Each dataset should have a different name')
     parser.add_argument('-n', '--noencode', help='do not encode UUID in output (default is to encode)', action='store_true')
     parser.add_argument('-v', '--verbose', help='verbose logging (default is false)', action='store_true')
     parser.add_argument('-l', '--log', help='log file path (only valid is -v is set; default is debug.log)', default='debug.log')
@@ -655,6 +656,9 @@ if __name__ == "__main__":
     # if --dir is provided, we will create a hashmap database
     if args.dir:
         HASHMAP_DB = db_init("{}/label.db".format(args.dir))
+        if not args.hashmap_name:
+            print("\33[101m[ERROR]\033[0m You must provide -m <HASHMAP_NAME> if you use -d")
+            exit(1)
 
     node_map = dict()
     parse_all_nodes(args.input, node_map)
