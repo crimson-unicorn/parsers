@@ -5,7 +5,7 @@ This parser optionally outputs some statistics for the graph if certain options 
 However, if you do not need those statistics, you should not turn the options on for better parsing performance.
 
 ## Usage
-Parsing is implemented in two separate stages, both written in Python.
+Parsing is implemented in two separate stages, both written in Python 2 (in most cases, if the given data is clean, you should also be able to run the parser using Python 3).
 You can either run our Python scripts directly or use our Makefile template that runs them in a virtual environment together (recommended).
 
 The first stage is accomplished by `prepare.py`. To run this script manually, you must install `xxhash` and `tqdm` first:
