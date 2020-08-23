@@ -98,28 +98,41 @@ evasion:
 		python streamspot/parse.py -g 0 -i ../../data/raw_evasion_data/dispersedGraph-579-300-targeted-6perc.csv -b ../../data/evasion_data/base_train/base-evasion-1.txt -S ../../data/evasion_data/stream_train/stream-evasion-1.txt
 
 visicorn:
-	cd ../../data && mkdir -p camflow_train
-	cd ../../data/camflow_train && mkdir -p base && mkdir -p stream
-	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
-	. venv/bin/activate ; \
+	cd ../../data && mkdir -p camflow_train_toy_2
+	cd ../../data/camflow_train_toy_2/ && mkdir -p base && mkdir -p stream
+	cd ../../data && mkdir -p camflow_test_toy_2
+	cd ../../data/camflow_test_toy_2/ && mkdir -p base && mkdir -p stream
+	cd ../../data && mkdir -p db
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv ; \
+		. venv/bin/activate ; \
 		pip install xxhash tqdm ; \
-		python camflow/prepare.py -i ../../data/camflow_raw_data/normal0.data -o preprocessed.txt ; \
-		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_train/base/base-camflow-0.txt -S ../../data/camflow_train/stream/stream-camflow-0.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack0.data -o preprocessed.txt -d ../../data/db -m attack0 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-0.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-0.txt ; \
 		rm preprocessed.txt ; \
-		python camflow/prepare.py -i ../../data/camflow_raw_data/normal1.data -o preprocessed.txt ; \
-		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_train/base/base-camflow-1.txt -S ../../data/camflow_train/stream/stream-camflow-1.txt ; \
-		rm preprocessed.txt
-	cd ../../data && mkdir -p camflow_test
-	cd ../../data/camflow_test && mkdir -p base && mkdir -p stream
-	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
-	. venv/bin/activate ; \
-		pip install xxhash tqdm ; \
-		python camflow/prepare.py -i ../../data/camflow_raw_data/attack0.data -o preprocessed.txt ; \
-		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_test/base/base-camflow-0.txt -S ../../data/camflow_test/stream/stream-camflow-0.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack1.data -o preprocessed.txt -d ../../data/db -m attack1 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-1.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-1.txt ; \
 		rm preprocessed.txt ; \
-		python camflow/prepare.py -i ../../data/camflow_raw_data/attack4.data -o preprocessed.txt ; \
-		python camflow/parse.py -b 1 -i preprocessed.txt -B ../../data/camflow_test/base/base-camflow-1.txt -S ../../data/camflow_test/stream/stream-camflow-1.txt ; \
-		rm preprocessed.txt
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack2.data -o preprocessed.txt -d ../../data/db -m attack2 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-2.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-2.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack3.data -o preprocessed.txt -d ../../data/db -m attack3 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-3.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-3.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack4.data -o preprocessed.txt -d ../../data/db -m attack4 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-4.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-4.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack5.data -o preprocessed.txt -d ../../data/db -m attack5 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-5.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-5.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/attack6.data -o preprocessed.txt -d ../../data/db -m attack6 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_test_toy_2/base/base-camflow-6.txt -S ../../data/camflow_test_toy_2/stream/stream-camflow-6.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/normal0.data -o preprocessed.txt -d ../../data/db -m normal0 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_train_toy_2/base/base-camflow-0.txt -S ../../data/camflow_train_toy_2/stream/stream-camflow-0.txt ; \
+		rm preprocessed.txt ; \
+		LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/camflow_new_raw/normal1.data -o preprocessed.txt -d ../../data/db -m normal1 ; \
+		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_train_toy_2/base/base-camflow-1.txt -S ../../data/camflow_train_toy_2/stream/stream-camflow-1.txt ; \
+		rm preprocessed.txt ; \
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
