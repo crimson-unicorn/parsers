@@ -134,6 +134,40 @@ visicorn:
 		python camflow/parse.py -b 4000 -i preprocessed.txt -B ../../data/camflow_train_toy_2/base/base-camflow-1.txt -S ../../data/camflow_train_toy_2/stream/stream-camflow-1.txt ; \
 		rm preprocessed.txt ; \
 
+SIZE=100
+visicorn_toy:
+	cd ../../data && mkdir -p visicorn_parsed
+	cd ../../data/visicorn_parsed/ && mkdir -p base && mkdir -p stream
+	cd ../../data && mkdir -p vizdb
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv ; \
+		. venv/bin/activate ; \
+		pip install xxhash tqdm ; \
+		number=0 ; while [ $$number -le 19 ] ; do \
+			LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/visicorn/read_only-$$number.data -o preprocessed.txt -d ../../data/vizdb -m read_only_$$number ; \
+			python camflow/parse.py -b $(SIZE) -i preprocessed.txt -B ../../data/visicorn_parsed/base/base-read-only-$$number.txt -S ../../data/visicorn_parsed/stream/stream-read-only-$$number.txt ; \
+			rm preprocessed.txt ; \
+			number=`expr $$number + 1` ; \
+		done ; \
+		number=0 ; while [ $$number -le 4 ] ; do \
+			LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/visicorn/read_socket-$$number.data -o preprocessed.txt -d ../../data/vizdb -m read_socket_$$number ; \
+			python camflow/parse.py -b $(SIZE) -i preprocessed.txt -B ../../data/visicorn_parsed/base/base-read-socket-$$number.txt -S ../../data/visicorn_parsed/stream/stream-read-socket-$$number.txt ; \
+			rm preprocessed.txt ; \
+			number=`expr $$number + 1` ; \
+		done ; \
+		number=0 ; while [ $$number -le 4 ] ; do \
+			LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/visicorn/read_stat-$$number.data -o preprocessed.txt -d ../../data/vizdb -m read_stat_$$number ; \
+			python camflow/parse.py -b $(SIZE) -i preprocessed.txt -B ../../data/visicorn_parsed/base/base-read-stat-$$number.txt -S ../../data/visicorn_parsed/stream/stream-read-stat-$$number.txt ; \
+			rm preprocessed.txt ; \
+			number=`expr $$number + 1` ; \
+		done ; \
+		number=0 ; while [ $$number -le 4 ] ; do \
+			LD_PRELOAD=/usr/local/lib/libsqlite3.so.0.8.6 python camflow/prepare.py -i ../../data/visicorn/read_write-$$number.data -o preprocessed.txt -d ../../data/vizdb -m read_write_$$number ; \
+			python camflow/parse.py -b $(SIZE) -i preprocessed.txt -B ../../data/visicorn_parsed/base/base-read-write-$$number.txt -S ../../data/visicorn_parsed/stream/stream-read-write-$$number.txt ; \
+			rm preprocessed.txt ; \
+			number=`expr $$number + 1` ; \
+		done ; \
+
+
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
 	number=0 ; while [ $$number -le 109 ] ; do \
