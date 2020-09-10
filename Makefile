@@ -92,10 +92,13 @@ a:
 	python camflow/parse.py -s 10 -b 500 -i wget-preprocessed.txt -B ../../data/camflow_test/base/base-wget.txt -S ../../data/camflow_test/stream/stream-wget.txt ; \
 	rm wget-preprocessed.txt
 
-evasion_toy:
-	cd ../../data && mkdir -p evasion_data
-	cd ../../data/evasion_data && mkdir -p base_train && mkdir -p stream_train
-	python streamspot/parse.py 0 ../../data/raw_evasion_data/dispersedGraph-579-300.csv ../../data/evasion_data/base_train/base-evasion-0.txt ../../data/evasion_data/stream_train/stream-evasion-0.txt
+evasion_mape:
+	cd ../../data && mkdir -p evasion_mape
+	cd ../../data/evasion_mape && mkdir -p base_test && mkdir -p stream_test
+	number=0 ; while [ $$number -le 24 ] ; do \
+		python streamspot/parse.py 0 ../../data/evasionGraphMape/dispersedGraph-579-$$number-300-targeted-0.csv ../../data/evasion_mape/base_test/base-evasion-$$number.txt ../../data/evasion_mape/stream_test/stream-evasion-$$number.txt ; \
+		number=`expr $$number + 1` ; \
+	done
 
 wget_train:
 	cd ../../data/benign && mkdir -p base && mkdir -p stream
