@@ -325,15 +325,31 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             ts_str = used[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
+                    if "cf:jiffies" not in used[uid]:
+                        # an edge must have a jiffies timestamp; if
+                        # not, we will have to skip the edge.
+                        # Log this issue if verbose is set.
+                        if CONSOLE_ARGUMENTS.verbose:
+                            logging.debug("edge (used) record without jiffies: {}".format(uid))
+                        continue
+                    else:
+                        # we only record @jiffies if
+                        # the option is set
+                        if CONSOLE_ARGUMENTS.jiffies:
+                            jiffies = used[uid]["cf:jiffies"]
                     total_edges += 1
                     if noencode:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
 		    else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
 
@@ -383,15 +399,26 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             ts_str = wasGeneratedBy[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
+                    if "cf:jiffies" not in wasGeneratedBy[uid]:
+                        if CONSOLE_ARGUMENTS.verbose:
+                            logging.debug("edge (wasGeneratedBy) record without jiffies: {}".format(uid))
+                        continue
+                    else:
+                        if CONSOLE_ARGUMENTS.jiffies:
+                            jiffies = wasGeneratedBy[uid]["cf:jiffies"]
                     total_edges += 1
                     if noencode:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
 	
@@ -441,15 +468,26 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             ts_str = wasInformedBy[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
+                    if "cf:jiffies" not in wasInformedBy[uid]:
+                        if CONSOLE_ARGUMENTS.verbose:
+                            logging.debug("edge (wasInformedBy) record without jiffies: {}".format(uid))
+                        continue
+                    else:
+                        if CONSOLE_ARGUMENTS.jiffies:
+                            jiffies = wasInformedBy[uid]["cf:jiffies"]
                     total_edges += 1
                     if noencode:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
 
@@ -499,15 +537,26 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             ts_str = wasDerivedFrom[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
+                    if "cf:jiffies" not in wasDerivedFrom[uid]:
+                        if CONSOLE_ARGUMENTS.verbose:
+                            logging.debug("edge (wasDerivedFrom) record without jiffies: {}".format(uid))
+                        continue
+                    else:
+                        if CONSOLE_ARGUMENTS.jiffies:
+                            jiffies = wasDerivedFrom[uid]["cf:jiffies"]
                     total_edges += 1
                     if noencode:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
 
@@ -557,15 +606,26 @@ def parse_all_edges(inputfile, outputfile, node_map, noencode):
                             ts_str = wasAssociatedWith[uid]["cf:date"]
                             ts = time.mktime(datetime.datetime.strptime(ts_str, "%Y:%m:%dT%H:%M:%S").timetuple())
                             adjusted_ts = ts - smallest_timestamp
+                    if "cf:jiffies" not in wasAssociatedWith[uid]:
+                        if CONSOLE_ARGUMENTS.verbose:
+                            logging.debug("edge (wasAssociatedWith) record without jiffies: {}".format(uid))
+                        continue
+                    else:
+                        if CONSOLE_ARGUMENTS.jiffies:
+                            jiffies = wasAssociatedWith[uid]["cf:jiffies"]
                     total_edges += 1
                     if noencode:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(srcUUID, dstUUID, srcVal, dstVal, edgetype, timestamp))
                     else:
                         if CONSOLE_ARGUMENTS.stats:
                             output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, adjusted_ts))
+                        elif CONSOLE_ARGUMENTS.jiffies:
+                            output.write("{}\t{}\t{}:{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp, jiffies))
                         else:
                             output.write("{}\t{}\t{}:{}:{}:{}\n".format(hashgen([srcUUID]), hashgen([dstUUID]), srcVal, dstVal, edgetype, timestamp))
     f.close()
@@ -583,6 +643,7 @@ if __name__ == "__main__":
     parser.add_argument('-l', '--log', help='log file path (only valid is -v is set; default is debug.log)', default='debug.log')
     parser.add_argument('-s', '--stats', help='record some statistics of the CamFlow graph data and runtime graph generation speed (default is false)', action='store_true')
     parser.add_argument('-f', '--stats-file', help='file path to record the statistics (only valid if -s is set; default is stats.csv)', default='stats.csv')
+    parser.add_argument('-t', '--jiffies', help='record jiffies of the CamFlow graph data. This option can be overwritten by "-s"', action='store_true')
     args = parser.parse_args()
 
     CONSOLE_ARGUMENTS = args

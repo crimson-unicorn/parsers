@@ -24,6 +24,7 @@ The log is default to be written to `debug.log`, but you can set your own debug 
 If you set `-s`, additional statistics of the CamFlow graph and timestamps of graph generation will be recorded.
 This is used for Unicorn's performance evaluation and very likely, you do not need to set this flag.
 If you set `-n`, node IDs will be in the original CamFlow UUID format, which is most likely *not* what you want. This is for debugging CamFlow, so you do not need to set this flag.
+If you set `-t`, the original jiffies from CamFlow will be recorded in the output. `-s` will overwrite `-t`, so do not set `-s` if you plan to set `-t`.
 
 The second and final stage is accomplished by `parse.py`.
 To run this script manually, you must install `tqdm` first.
@@ -63,6 +64,7 @@ The output of `prepare.py` is an edgelist, with each line recording an edge of t
 ```
 * If you set `-n`, `srcID` and `dstID` will be in CamFlow original UUID format. This is usually not you want.
 * If you set `-s`, you will see the last `Timestamp` value. This is usually not necessary to have.
+* If you set `-t`, you will also see the last `Timestamp` value, but it is the original jiffies from CamFlow. Note that `-s` overwrites `-t`.
 
 The output of `parse.py` consists of a base graph and a stream graph.
 In the base graph, each line is an edge of the format:
