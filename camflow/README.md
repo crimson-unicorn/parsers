@@ -40,6 +40,7 @@ You can set `-s` to parse timestamps of graph generation. If you do so, you must
 However, this option, and its associated options (`-I`, `-f`) are used for our performance evaluation to see how fast CamFlow generates provenance graph and therefore, are *not* likely what you need.
 If you set `-s`, you will see an additional output file `ts.txt`, which records adjusted timestamps (recorded in the previous stage) every N edges where N is determined by `-I`, which you must set if `-s` is set.
 Again, it is unlikely that you will want to set those flags.
+If you set `-t`, you will parse jiffies of the graph. If you do so, you must set the same option in the previous stage. Note that `-s` can overwrite `-t`.
 
 If you prefer using a virtual environment, make sure you have `virtualenv` installed.
 The Makefile template is located in the `example/` folder in which we include a small example to demonstrate how you can run the parser.
@@ -72,11 +73,14 @@ In the base graph, each line is an edge of the format:
 <srcID> <dstID> <srcType>:<dstType>:<edgeType>:<logicalTimestamp>
 ```
 This is the same as in the `prepare.py` except that edges are sorted by the logical timestamp.
+However, if you set `-t` in `parse.py`, you have an addition field at the end:
+```
+<srcID> <dstID> <srcType>:<dstType>:<edgeType>:<logicalTimestamp>:<jiffies>
+```
 
 In the stream graph, each line is also an edge, but of the format:
 ```
 <srcID> <dstID> <srcType>:<dstType>:<edgeType>:<srcUnseen>:<dstUnseen>:<logicalTimestamp>[:<Timestamp>]
 ```
 * `srcUnseen` and `dstUnseen` are either 0 (we have seen this node in a previous edge) or 1 (we have not). This is needed for the graph processing framework we use.
-* If you set `-s`, you will see the last `Timestamp` value. This is usually not necessary to have.
-
+* If you set `-s`/`-t`, you will see the last `Timestamp` value. This is usually not necessary to have.

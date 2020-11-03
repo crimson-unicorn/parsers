@@ -21,7 +21,7 @@ def read_single_graph(file_name):
     """Parsing edgelist from the output of prepare.py.
     The format from prepare.py looks like:
     <source_node_id> \t <destination_node_id> \t <hashed_source_type>:<hashed_destination_type>:<hashed_edge_type>:<edge_logical_timestamp>[:<timestamp_stats>]
-    The last '<timestamp_stats>' may or may not exist depending on whether the -s option is set when running prepare.py.
+    The last '<timestamp_stats>' may or may not exist depending on whether the -s/-t option is set when running prepare.py.
     Returned from this funtion is a list of edges, each of which is itself a list containing:
     [source_node_id, destination_node_id, source_node_type, destination_node_type, edge_type, logical_timestamp, [timestamp,] source_node_seen, destination_node_seen]
     The `timestamp` may or may not exist.
@@ -35,25 +35,32 @@ def read_single_graph(file_name):
     with open(file_name, 'r') as f:
         for line in f:
             pb.update()                                     # for progress tracking
-            edge = line.strip().split("\t")
-            attributes = edge[2].strip().split(":")         # [hashed_source_type, hashed_destination_type, hashed_edge_type, edge_logical_timestamp, [timestamp_stats]]
-            source_node_type = attributes[0]                # hashed_source_type
-            destination_node_type = attributes[1]           # hashed_destination_type
-            edge_type = attributes[2]                       # hashed_edge_type
-            edge_order = attributes[3]                      # edge_logical_timestamp
-            if CONSOLE_ARGUMENTS.stats:
-                ts = attributes[4]                          # timestamp_stats
-            # now we rearrange the edge vector:
-            # edge[0] is source_node_id, as orginally split
-            # edge[1] is destination_node_id, as originally split
-            edge[2] = source_node_type
-            edge.append(destination_node_type)              # edge[3] = hashed_destination_type
-            edge.append(edge_type)                          # edge[4] = hashed_edge_type
-            edge.append(edge_order)                         # edge[5] = edge_logical_timestamp
-            if CONSOLE_ARGUMENTS.stats:
-                edge.append(ts)                             # optional: edge[6] = timestamp_stats
+            try:
+                edge = line.strip().split("\t")
+                attributes = edge[2].strip().split(":")         # [hashed_source_type, hashed_destination_type, hashed_edge_type, edge_logical_timestamp, [timestamp_stats]]
+                source_node_type = attributes[0]                # hashed_source_type
+                destination_node_type = attributes[1]           # hashed_destination_type
+                edge_type = attributes[2]                       # hashed_edge_type
+                edge_order = attributes[3]                      # edge_logical_timestamp
+                if CONSOLE_ARGUMENTS.stats:
+                    ts = attributes[4]                          # timestamp_stats
+                elif CONSOLE_ARGUMENTS.jiffies:
+                    ts = attributes[4]                          # CamFlow jiffies
+                # now we rearrange the edge vector:
+                # edge[0] is source_node_id, as orginally split
+                # edge[1] is destination_node_id, as originally split
+                edge[2] = source_node_type
+                edge.append(destination_node_type)              # edge[3] = hashed_destination_type
+                edge.append(edge_type)                          # edge[4] = hashed_edge_type
+                edge.append(edge_order)                         # edge[5] = edge_logical_timestamp
+                if CONSOLE_ARGUMENTS.stats:
+                    edge.append(ts)                             # optional: edge[6] = timestamp_stats
+                elif CONSOLE_ARGUMENTS.jiffies:
+                    edge.append(ts)                             # optional: edge[6] = jiffies
 
-            graph.append(edge)
+                graph.append(edge)
+            except:
+                print("{}".format(line))
     f.close()
     pb.close()
     # sort the graph edges based on logical timestamps
@@ -94,6 +101,7 @@ if __name__ == "__main__":
     parser.add_argument('-s', '--stats', help='record runtime graph generation speed (you must turn the same option on in the previous prepare.py stage; default is false)', action='store_true')
     parser.add_argument('-I', '--interval', help='the interval (in terms of number of edges) to record time (you must set this value if -s is set)', type=int)
     parser.add_argument('-f', '--stats-file', help='file path to record the statistics (only valid if -s is set; default is ts.txt)', default='ts.txt')
+    parser.add_argument('-t', '--jiffies', help='record CamFlow graph jiffies; -s can overwrite this option', action='store_true')
     args = parser.parse_args()
 
     CONSOLE_ARGUMENTS = args
@@ -120,9 +128,14 @@ if __name__ == "__main__":
         
     for num, edge in enumerate(graph):
         if num < base_graph_size:
-            base_file.write("{} {} {}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[5]))
+            if args.jiffies:
+                base_file.write("{} {} {}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[5], edge[6]))
+            else:
+                base_file.write("{} {} {}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[5]))
 	else:
             if args.stats:
+                stream_file.write("{} {} {}:{}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[7], edge[8], edge[5], edge[6]))
+            elif args.jiffies:
                 stream_file.write("{} {} {}:{}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[7], edge[8], edge[5], edge[6]))
             else:
                 stream_file.write("{} {} {}:{}:{}:{}:{}:{}\n".format(edge[0], edge[1], edge[2], edge[3], edge[4], edge[6], edge[7], edge[5]))
