@@ -12,6 +12,8 @@ If you want to use this parser for your own graph, make sure the format of the g
 (see [Graph Format](#graph-format)).
 
 ### [Usage](#usage)
+> :rocket: Use `parse_fast.py` instead for lightening fast (compared to `parser.py`) parsing. Highly recommended for a big dataset!
+
 You can either run our Python script directly or use our Makefile template that runs the parser in a virtual environment (recommended).
 Should you choose to run the script directly, you must install `tqdm` first:
 ```
@@ -19,7 +21,7 @@ pip install tqdm
 ```
 You can then run:
 ```
-python parser.py -h
+python parse.py -h
 ```
 to understand the required arguments.
 
@@ -33,6 +35,16 @@ to check out the outputs. To clean up, run:
 ```
 make clean
 ```
+
+If you use `parse_fast.py`, you must provide the size of the base graph.
+`parse_fast.py` ignores graph ID, so every edge in the input graph must belong to the same output graph
+(i.e.g, do not include multiple graphs in the same input file if you want to use `parse_fast.py`).
+Additionally, you must install `pandas`:
+```
+pip install pandas
+```
+Using `parse_fast.py` is highly recommended!
+
 
 ### [Graph Format](#graph-format)
 The input graph should have one line per edge, and each edge should look like this:
@@ -58,7 +70,7 @@ The only difference from the format above, besides the format itself, is the log
 that is attached to each edge.
 Note that graph ID is no longer part of the edge, so the output file contains only a single graph as specified during parsing.
 
-The *stream* output graph, written to a differen file, again contains one line per edge, and each edge would look like this:
+The *stream* output graph, written to a different file, again contains one line per edge, and each edge would look like this:
 ```
 4 14 a:c:u:0:1:26
 ```
