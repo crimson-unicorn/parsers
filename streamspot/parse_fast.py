@@ -49,8 +49,9 @@ def read_single_graph(file_name, b_size, b_fh, s_fh):
         # replace the fourth column to the @info str
         df.at[edge.Index, 3] = info
         # replace the src and dst ids
-        df.at[edge.Index, 0] = src_id
-        df.at[edge.Index, 2] = dst_id
+        if CONSOLE_ARGUMENTS.arrange:
+            df.at[edge.Index, 0] = src_id
+            df.at[edge.Index, 2] = dst_id
         cnt += 1
     cols = [1, 4, 5]
     # drops column in the original data frame
@@ -79,18 +80,19 @@ def read_single_graph(file_name, b_size, b_fh, s_fh):
             src_type = df.at[edge.Index, 1]
             dst_type = df.at[edge.Index, 3]
             edge_type = df.at[edge.Index, 4]
-            seen_src = 1
+            new_src = 0
             if not src_id in node_id_seen:
-                seen_src = 0
+                new_src = 1
                 node_id_seen.add(src_id)
-            seen_dst = 1
+            new_dst = 0
             if not dst_id in node_id_seen:
-                seen_dst = 0
+                new_dst = 1
                 node_id_seen.add(dst_id)
-            info = "{}:{}:{}:{}:{}:{}".format(src_type, dst_type, edge_type, seen_src, seen_dst, cnt)
+            info = "{}:{}:{}:{}:{}:{}".format(src_type, dst_type, edge_type, new_src, new_dst, cnt)
             df.at[edge.Index, 3] = info
-            df.at[edge.Index, 0] = src_id
-            df.at[edge.Index, 2] = dst_id
+            if CONSOLE_ARGUMENTS.arrange:
+                df.at[edge.Index, 0] = src_id
+                df.at[edge.Index, 2] = dst_id
             cnt += 1
         df.drop(df.columns[cols], axis=1, inplace=True)
         df.to_csv(s_fh, sep=' ', mode='a', header=False, index=False)
