@@ -11,6 +11,10 @@ You have the flexibility to set the size of the base graph, however (see [Usage]
 If you want to use this parser for your own graph, make sure the format of the graph aligns with StreamSpot's format
 (see [Graph Format](#graph-format)).
 
+For Unicorn's [analyzer](https://github.com/crimson-unicorn/analyzer) to work, make sure for each graph,
+the node IDs start from 0 and do not skip numbers. If you use `parse_fast.py`, you can provide `-a` flag
+and the parser will rearrange the graph's node ID to be Unicorn-compliant (`parse.py` does not have this option yet).
+
 ### [Usage](#usage)
 > :rocket: Use `parse_fast.py` instead for lightening fast (compared to `parse.py`) parsing. Highly recommended for a big dataset!
 
