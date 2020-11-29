@@ -9,8 +9,24 @@ import pandas as pd
 CONSOLE_ARGUMENTS = None
 
 
+def separate_graph(file_name, graph_id):
+    """If file @file_name has many graphs, filter out
+    other graphs except the one with ID @graph_id, and
+    write to a temporary file."""
+    df = pd.read_csv(file_name, sep='\t', dtype=str, header=None)
+    filtered_df = df[df[5] == graph_id]
+    filtered_df.to_csv("tmp.csv", sep='\t', header=False, index=False)
+
+
+def graph_size(file_name):
+    """Total size of a graph located at @file_name. """
+    df = pd.read_csv(file_name, sep='\t', dtype=str, header=None)
+    rows = df.shape[0]
+    return rows
+
+
 def read_single_graph(file_name, b_size, b_fh, s_fh):
-    """Read a single graph from the file @file_name.
+    """Read a single graph from the file @file_name
     Write @b_size number of edges to @b_fh and the
     rest of the edges in the graph to @s_fh."""
     node_id_seen = set()                                        # set of the node id that we have seen already
@@ -100,8 +116,9 @@ def read_single_graph(file_name, b_size, b_fh, s_fh):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
+    parser.add_argument('-g', '--graph', help='the id of the graph to be parsed (if not provided, all edges are considered)')
     # %% is not a typo: https://thomas-cokelaer.info/blog/2014/03/python-argparse-issues-with-the-help-argument-typeerror-o-format-a-number-is-required-not-dict/
-    parser.add_argument('-s', '--size', help='the size of the base graph in absolute value', required=True, type=int)
+    parser.add_argument('-s', '--size', help='the size of the base graph in absolute value (default is 10%% of the entire graph)', type=int)
     parser.add_argument('-i', '--input', help='input StreamSpot data file path', required=True)
     parser.add_argument('-b', '--base', help='output file path of the base graph', required=True)
     parser.add_argument('-S', '--stream', help='output file path of the stream graph', required=True)
@@ -112,16 +129,25 @@ if __name__ == "__main__":
 
     CONSOLE_ARGUMENTS = args
 
-    base_graph_size = args.size
+    in_file = args.input
+    if args.graph:
+        separate_graph(args.input, args.graph)
+        in_file = "tmp.csv"
+
+    graph_size = graph_size(in_file)
+    if not args.size:
+        base_graph_size = int(math.ceil(graph_size * 0.1))
+    else:
+        base_graph_size = args.size
 
     base_file = open(args.base, "w")
     stream_file = open(args.stream, "w")
 
-    read_single_graph(args.input, base_graph_size, base_file, stream_file)
+    read_single_graph(in_file, base_graph_size, base_file, stream_file)
 
     print("\x1b[6;30;42m[SUCCESS]\x1b[0m Graph is processed:")
     print("\x1b[6;30;42m[SUCCESS]\x1b[0m Base graph of size {} is located at {}".format(base_graph_size, args.base))
-    print("\x1b[6;30;42m[SUCCESS]\x1b[0m Stream graph is located at {}".format(args.stream))
+    print("\x1b[6;30;42m[SUCCESS]\x1b[0m Stream graph of size {} is located at {}".format(graph_size - base_graph_size, args.stream))
 
     base_file.close()
     stream_file.close()

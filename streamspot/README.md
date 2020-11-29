@@ -40,14 +40,17 @@ to check out the outputs. To clean up, run:
 make clean
 ```
 
-If you use `parse_fast.py`, you must provide the size of the base graph.
-`parse_fast.py` ignores graph ID, so every edge in the input graph must belong to the same output graph
-(i.e.g, do not include multiple graphs in the same input file if you want to use `parse_fast.py`).
-Additionally, you must install `pandas`:
+:new:
+You can now use `parse_fast.py` for a much faster parsing performance!
+However, you must install `pandas`:
 ```
 pip install pandas
 ```
-Using `parse_fast.py` is highly recommended!
+Using `parse_fast.py` is highly recommended. Run:
+```
+python parse_fast.py -h
+```
+to understand the required arguments.
 
 
 ### [Graph Format](#graph-format)
