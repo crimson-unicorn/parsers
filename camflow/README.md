@@ -1,6 +1,6 @@
 # CamFlow Data Parser
 This is a Python data parser for [CamFlow](https://camflow.org).
-The parser is designed specifically for CamFlow's JSON output data format and Unicorn's graph processing framework.
+The parser is designed specifically for CamFlow's JSON output data format and Kairos' graph processing framework.
 This parser optionally outputs some statistics for the graph if certain options are set in the commandline.
 However, if you do not need those statistics, you should not turn the options on for better parsing performance.
 
