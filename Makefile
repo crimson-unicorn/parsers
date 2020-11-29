@@ -1,15 +1,20 @@
 toy:
 	cd ../../data && mkdir -p toy_data
 	cd ../../data/toy_data && mkdir -p base_train && mkdir -p stream_train
-	number=0 ; while [ $$number -le 99 ] ; do \
-		python streamspot/parse.py $$number ../../data/all.tsv ../../data/toy_data/base_train/base-toy-$$number.txt ../../data/toy_data/stream_train/stream-toy-$$number.txt ; \
-		number=`expr $$number + 4` ; \
-	done
 	cd ../../data/toy_data && mkdir -p base_test && mkdir -p stream_test
-	number=300 ; while [ $$number -le 399 ] ; do \
-		python streamspot/parse.py $$number ../../data/all.tsv ../../data/toy_data/base_test/base-attack-$$number.txt ../../data/toy_data/stream_test/stream-attack-$$number.txt ; \
-		number=`expr $$number + 16` ; \
-	done
+	test -f venv/bin/activate || virtualenv -p $(shell which python) venv
+	. venv/bin/activate ; \
+		pip install tqdm pandas ; \
+		number=0 ; while [ $$number -le 99 ] ; do \
+			python streamspot/parse_fast.py -g $$number -a -i ../../data/all.tsv -b ../../data/toy_data/base_train/base-toy-$$number.txt -S ../../data/toy_data/stream_train/stream-toy-$$number.txt ; \
+			number=`expr $$number + 4` ; \
+			rm -f tmp.csv ; \
+		done ; \
+		number=300 ; while [ $$number -le 399 ] ; do \
+			python streamspot/parse_fast.py -g $$number -a -i ../../data/all.tsv -b ../../data/toy_data/base_test/base-attack-$$number.txt -S ../../data/toy_data/stream_test/stream-attack-$$number.txt ; \
+			number=`expr $$number + 16` ; \
+			rm -f tmp.csv ; \
+		done
 
 youtube:
 	cd ../../data && mkdir -p youtube_data
