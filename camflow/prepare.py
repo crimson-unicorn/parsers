@@ -104,9 +104,13 @@ def db_init(db_file):
 def db_add(cursor, h, l):
     """Add a hash value @h and the corresponding list @l being hashed
     to the database pointed by @cursor. """
-    sql_insert = ''' INSERT INTO {} (hash, val, level) VALUES (?,?,0) ON CONFLICT(hash) DO UPDATE SET val=?; '''
+    # Note: ON ONFLICT is not supported by older version of SQLite (use the next commented code if it is supported)
+    # sql_insert = ''' INSERT INTO {} (hash, val, level) VALUES (?,?,0) ON CONFLICT(hash) DO UPDATE SET val=?; '''
+    sql_insert = ''' INSERT OR REPLACE INTO {} (hash, val, level) VALUES (?,?,0); '''
     s = str(l)
-    cursor.execute(sql_insert.format(CONSOLE_ARGUMENTS.hashmap_name), (str(h), s, s))
+    # Use the next commented code if use ON CONFLICT
+    # cursor.execute(sql_insert.format(CONSOLE_ARGUMENTS.hashmap_name), (str(h), s, s))
+    cursor.execute(sql_insert.format(CONSOLE_ARGUMENTS.hashmap_name), (str(h), s))
 
 
 def db_close(cursor):
